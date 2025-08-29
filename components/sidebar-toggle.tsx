@@ -7,13 +7,13 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 
-import { SidebarLeftIcon } from './icons';
+import { AdaLinkLogo, SidebarLeftIcon } from './icons';
 import { Button } from './ui/button';
 
 export function SidebarToggle({
   className,
 }: ComponentProps<typeof SidebarTrigger>) {
-  const { toggleSidebar } = useSidebar();
+  const { toggleSidebar, open } = useSidebar();
 
   return (
     <Tooltip>
@@ -24,7 +24,7 @@ export function SidebarToggle({
           variant="outline"
           className="md:px-2 md:h-fit"
         >
-          <SidebarLeftIcon size={16} />
+          {open ? <SidebarLeftIcon size={16} /> : <AdaLinkLogo size={18} />}
         </Button>
       </TooltipTrigger>
       <TooltipContent align="start">Toggle Sidebar</TooltipContent>

@@ -39,15 +39,71 @@ export function ModelSelector({
     },
   );
 
+  const { data: filterConfig } = useSWR<{
+    allowedProviders: string[];
+    allowedModels: string[];
+    allowAllProviders: boolean;
+    allowAllModels: boolean;
+  }>(
+    '/api/providers',
+    (url) => fetch(url).then((response) => response.json()),
+    {
+      fallbackData: { 
+        allowedProviders: [], 
+        allowedModels: [],
+        allowAllProviders: true,
+        allowAllModels: true 
+      },
+    },
+  );
+
   const [optimisticModelId, setOptimisticModelId] =
     useOptimistic(selectedModelId);
 
   const userType = session.user.type;
 
-  const selectedChatModel = useMemo(
-    () => models?.find((chatModel) => chatModel.id === optimisticModelId),
-    [optimisticModelId, models],
-  );
+  // Filter models based on allowed providers and models
+  const filteredModels = useMemo(() => {
+    if (!models || !filterConfig) return [];
+    
+    let filtered = models;
+    
+    // First filter by specific models if configured
+    if (!filterConfig.allowAllModels) {
+      const allowedModels = filterConfig.allowedModels;
+      filtered = filtered.filter((model) => {
+        return allowedModels.includes(model.id.toLowerCase());
+      });
+    }
+    
+    // Then filter by providers if configured
+    if (!filterConfig.allowAllProviders) {
+      const allowedProviders = filterConfig.allowedProviders;
+      filtered = filtered.filter((model) => {
+        // Extract provider from model ID (format: "provider/model-name" or "provider-model-name")
+        const modelIdLower = model.id.toLowerCase();
+        const provider = modelIdLower.includes('/') 
+          ? modelIdLower.split('/')[0] 
+          : modelIdLower.split('-')[0];
+        
+        return allowedProviders.includes(provider);
+      });
+    }
+    
+    return filtered;
+  }, [models, filterConfig]);
+
+  const selectedChatModel = useMemo(() => {
+    // First try to find the optimistic model ID in filtered models
+    let selected = filteredModels?.find((chatModel) => chatModel.id === optimisticModelId);
+    
+    // If not found or no model selected, use the first model from filtered list
+    if (!selected && filteredModels && filteredModels.length > 0) {
+      selected = filteredModels[0];
+    }
+    
+    return selected;
+  }, [optimisticModelId, filteredModels]);
 
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
@@ -71,7 +127,7 @@ export function ModelSelector({
         align="start"
         className="w-96 h-52 overflow-y-scroll"
       >
-        {models?.map((chatModel) => {
+        {filteredModels?.map((chatModel) => {
           const { id } = chatModel;
 
           return (
