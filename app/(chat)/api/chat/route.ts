@@ -67,8 +67,11 @@ export async function POST(request: Request) {
 
   try {
     const json = await request.json();
+    console.log('[DEBUG] Request JSON:', json);
     requestBody = postRequestBodySchema.parse(json);
-  } catch (_) {
+    console.log('[DEBUG] Parsed request body:', requestBody);
+  } catch (error) {
+    console.error('[DEBUG] Request parsing error:', error);
     return new ChatSDKError('bad_request:api').toResponse();
   }
 
@@ -77,13 +80,21 @@ export async function POST(request: Request) {
       id,
       message,
       selectedChatModel,
-      selectedVisibilityType,
+      selectedVisibilityType = 'private',
     }: {
       id: string;
       message: ChatMessage;
       selectedChatModel: ChatModel['id'];
-      selectedVisibilityType: VisibilityType;
+      selectedVisibilityType?: VisibilityType;
     } = requestBody;
+
+    console.log('[DEBUG] Chat request params:', {
+      id,
+      selectedChatModel,
+      selectedVisibilityType,
+      messageId: message.id,
+      hasXaiKey: !!process.env.XAI_API_KEY
+    });
 
     const session = await auth();
 
@@ -107,6 +118,7 @@ export async function POST(request: Request) {
     if (!chat) {
       const title = await generateTitleFromUserMessage({
         message,
+        modelId: selectedChatModel,
       });
 
       await saveChat({
@@ -149,8 +161,11 @@ export async function POST(request: Request) {
     const streamId = generateUUID();
     await createStreamId({ streamId, chatId: id });
 
+    console.log('[DEBUG] About to call streamText with model:', selectedChatModel);
+    
     const stream = createUIMessageStream({
       execute: ({ writer: dataStream }) => {
+        console.log('[DEBUG] Executing streamText...');
         const result = streamText({
           model: gateway(selectedChatModel),
           system: systemPrompt({ selectedChatModel, requestHints }),
@@ -202,7 +217,13 @@ export async function POST(request: Request) {
           })),
         });
       },
-      onError: () => {
+      onError: (error) => {
+        console.error('[DEBUG] StreamText onError:', error);
+        console.error('[DEBUG] StreamText error details:', {
+          message: (error as any)?.message,
+          stack: (error as any)?.stack,
+          name: (error as any)?.name
+        });
         return 'Oops, an error occurred!';
       },
     });
@@ -219,6 +240,14 @@ export async function POST(request: Request) {
       return new Response(stream.pipeThrough(new JsonToSseTransformStream()));
     }
   } catch (error) {
+    console.error('[DEBUG] Chat API error:', error);
+    console.error('[DEBUG] Error details:', {
+      message: (error as any)?.message,
+      stack: (error as any)?.stack,
+      name: (error as any)?.name,
+      cause: (error as any)?.cause
+    });
+    
     if (error instanceof ChatSDKError) {
       return error.toResponse();
     }
