@@ -62,7 +62,7 @@ export function AppSidebar({ user }: { user: User | undefined }) {
               onClick={() => {
                 setOpenMobile(false);
               }}
-              className="flex flex-row gap-3 items-center mt-3"
+              className="flex justify-center items-center mt-3"
             >
               <Image
                 src="/images/logo-adaflow.jpg"
