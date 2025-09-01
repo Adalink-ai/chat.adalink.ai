@@ -77,7 +77,8 @@ export function AppSidebar({ user }: { user: User | undefined }) {
               placeholder="Buscar conversas..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:border-gray-400"
+              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md
+focus:outline-none focus:border-none focus:ring-0"
             />
             <Button
               type="button"

@@ -33,20 +33,10 @@ export function MessageBubble({ message, session }: MessageBubbleProps) {
               className="size-6 rounded-full object-cover"
             />
           ) : (
-            <div
-              className="size-6 rounded-full flex items-center justify-center"
-              style={{ backgroundColor: '#B800C9' }}
-            >
-              <span className="text-white text-xs font-medium">
-                {session?.user?.name?.charAt(0) || 'U'}
-              </span>
-            </div>
+            <div className="size-6 rounded-full bg-white"></div>
           )
         ) : (
-          <div
-            className="size-8 rounded-full flex items-center justify-center text-white"
-            style={{ backgroundColor: '#B800C9' }}
-          >
+          <div className="size-8 rounded-full flex items-center justify-center text-white bg-purple-custom-500">
             <BotIcon size={16} />
           </div>
         )}
@@ -58,10 +48,9 @@ export function MessageBubble({ message, session }: MessageBubbleProps) {
           className={cn(
             'px-4 py-3 rounded-2xl',
             isUser
-              ? 'text-white rounded-br-sm'
+              ? 'bg-purple-custom-500 text-white rounded-br-sm'
               : 'bg-white text-gray-900 rounded-bl-sm shadow-sm border border-gray-200',
           )}
-          style={isUser ? { backgroundColor: '#B800C9' } : undefined}
         >
           <Markdown>{sanitizeText(textContent)}</Markdown>
         </div>

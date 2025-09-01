@@ -71,7 +71,7 @@ const PurePreviewMessage = ({
                 <SparklesIcon size={14} />
               </div>
             ) : (
-              <div className="size-6 rounded-full bg-purple-600 flex items-center justify-center">
+              <div className="size-6 rounded-full bg-purple-custom-500 flex items-center justify-center">
                 <span className="text-white text-xs font-medium">U</span>
               </div>
             )}
