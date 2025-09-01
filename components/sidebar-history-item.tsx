@@ -6,7 +6,7 @@ import {
   Share,
   Globe,
   Lock,
-} from 'lucide-react';
+ CheckCircle } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from './ui/button';
 import {
@@ -19,7 +19,6 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from './ui/dropdown-menu';
-import { CheckCircleFillIcon } from './icons';
 import { memo } from 'react';
 import { useChatVisibility } from '@/hooks/use-chat-visibility';
 import { formatDistanceToNow } from 'date-fns';
@@ -108,7 +107,7 @@ const PureChatItem = ({
                                 <span>Private</span>
                               </div>
                               {visibilityType === 'private' ? (
-                                <CheckCircleFillIcon />
+                                <CheckCircle />
                               ) : null}
                             </DropdownMenuItem>
                             <DropdownMenuItem
@@ -122,7 +121,7 @@ const PureChatItem = ({
                                 <span>Public</span>
                               </div>
                               {visibilityType === 'public' ? (
-                                <CheckCircleFillIcon />
+                                <CheckCircle />
                               ) : null}
                             </DropdownMenuItem>
                           </DropdownMenuSubContent>
