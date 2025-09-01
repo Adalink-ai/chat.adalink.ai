@@ -162,3 +162,54 @@
 .suggestion-highlight {
     @apply bg-blue-200 hover:bg-blue-300 dark:hover:bg-blue-400/50 dark:text-blue-50 dark:bg-blue-500/40;
 }
+
+/* Animações para o AssistantLoadingCard */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes logoSpin {
+    0% { transform: rotate(0deg) scale(1); }
+    25% { transform: rotate(90deg) scale(1.1); }
+    50% { transform: rotate(180deg) scale(1); }
+    75% { transform: rotate(270deg) scale(1.1); }
+    100% { transform: rotate(360deg) scale(1); }
+}
+
+@keyframes blink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0; }
+}
+
+@keyframes colorChange {
+    0%, 100% { stroke: #B800C9; }
+    50% { stroke: #9300A1; }
+}
+
+@keyframes dashAnimation {
+    0% { stroke-dasharray: 0 125; }
+    50% { stroke-dasharray: 90 125; }
+    100% { stroke-dasharray: 0 125; }
+}
+
+.animate-fadeIn {
+    animation: fadeIn 0.5s ease-out;
+}
+
+.animate-logoSpin {
+    animation: logoSpin 2.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) infinite;
+    transform-origin: center center;
+}
+
+.animate-blink {
+    animation: blink 0.8s step-start infinite;
+}
+
+.animate-colorChange {
+    animation: colorChange 2s ease-in-out infinite;
+}
+
+.animate-dashAnimation {
+    animation: dashAnimation 1s linear infinite;
+}
