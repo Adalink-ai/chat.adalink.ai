@@ -19,7 +19,7 @@ export function TypingIndicator({ isVisible }: TypingIndicatorProps) {
     >
       {/* Loading Card */}
       <div className="flex flex-col gap-2 max-w-xs md:max-w-md lg:max-w-lg">
-        <div className="bg-white text-gray-900 rounded-2xl rounded-bl-sm shadow-sm border border-gray-200">
+        <div className="bg-card text-card-foreground rounded-2xl rounded-bl-sm shadow-sm border border-border">
           <AssistantLoadingCard />
         </div>
       </div>
