@@ -1,6 +1,7 @@
 'use client';
 
 import { ModelSelector } from '@/components/model-selector';
+import { MessageIcon } from './icons';
 import { memo } from 'react';
 import type { Session } from 'next-auth';
 
@@ -8,17 +9,41 @@ function PureChatHeader({
   selectedModelId,
   isReadonly,
   session,
+  conversationTitle,
 }: {
   selectedModelId: string;
   isReadonly: boolean;
   session: Session;
+  conversationTitle?: string;
 }) {
   return (
-    <header className="flex sticky top-0 bg-background py-1.5 items-center px-2 md:px-2 gap-2">
-      {!isReadonly && (
-        <ModelSelector session={session} selectedModelId={selectedModelId} />
-      )}
-    </header>
+    <div className="border-b border-gray-200 px-6 py-4 bg-white">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div
+            className="size-8 rounded-lg flex items-center justify-center bg-purple-100"
+            style={{
+              backgroundColor: 'rgba(184, 0, 201, 0.1)',
+              color: '#B800C9',
+            }}
+          >
+            <MessageIcon size={16} />
+          </div>
+          <div>
+            <h2 className="font-semibold text-gray-900">
+              {conversationTitle || 'Nova Conversa'}
+            </h2>
+            <p className="text-sm" style={{ color: '#B800C9' }}>
+              Online agora
+            </p>
+          </div>
+        </div>
+
+        {!isReadonly && (
+          <ModelSelector session={session} selectedModelId={selectedModelId} />
+        )}
+      </div>
+    </div>
   );
 }
 
