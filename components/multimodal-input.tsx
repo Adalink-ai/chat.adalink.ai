@@ -15,7 +15,7 @@ import {
 import { toast } from 'sonner';
 import { useLocalStorage, useWindowSize } from 'usehooks-ts';
 
-import { ArrowUpIcon, StopIcon , ChevronDownIcon } from './icons';
+import { ArrowUpIcon, StopIcon, ChevronDownIcon } from './icons';
 import { PreviewAttachment } from './preview-attachment';
 import { Button } from './ui/button';
 import { Textarea } from './ui/textarea';
@@ -269,8 +269,12 @@ function PureMultimodalInput({
       <div className="flex items-center gap-4">
         <ActionButtons
           onFileSelect={(files) => {
-            // Handle file upload logic here
-            console.log('Files selected:', files);
+            if (fileInputRef.current) {
+              fileInputRef.current.files = files;
+              handleFileChange({
+                target: { files },
+              } as ChangeEvent<HTMLInputElement>);
+            }
           }}
           onMicrophoneClick={() => {
             // Handle microphone logic here
