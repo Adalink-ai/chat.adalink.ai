@@ -8,12 +8,10 @@ import type { Session } from 'next-auth';
 function PureChatHeader({
   selectedModelId,
   isReadonly,
-  session,
   conversationTitle,
 }: {
   selectedModelId: string;
   isReadonly: boolean;
-  session: Session;
   conversationTitle?: string;
 }) {
   return (
@@ -39,9 +37,7 @@ function PureChatHeader({
           </div>
         </div>
 
-        {!isReadonly && (
-          <ModelSelector session={session} selectedModelId={selectedModelId} />
-        )}
+        {!isReadonly && <ModelSelector selectedModelId={selectedModelId} />}
       </div>
     </div>
   );

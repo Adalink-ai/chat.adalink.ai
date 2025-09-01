@@ -26,6 +26,7 @@ import type { UseChatHelpers } from '@ai-sdk/react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useScrollToBottom } from '@/hooks/use-scroll-to-bottom';
 import type { Attachment, ChatMessage } from '@/lib/types';
+import { Send } from 'lucide-react';
 
 function PureMultimodalInput({
   chatId,
@@ -347,7 +348,7 @@ function PureMultimodalInput({
                 submitForm();
               }}
               disabled={input.length === 0 || uploadQueue.length > 0}
-              className="absolute right-3 top-1/2 -translate-y-1/2 size-10 rounded-full disabled:bg-gray-300 disabled:cursor-not-allowed p-0 transition-colors duration-200"
+              className="absolute right-3 top-1/2 -translate-y-1/2 size-10 rounded-lg disabled:bg-gray-300 disabled:cursor-not-allowed p-0 transition-colors duration-200"
               style={{
                 backgroundColor:
                   input.length === 0 || uploadQueue.length > 0
@@ -366,7 +367,7 @@ function PureMultimodalInput({
               }}
               title="Enviar mensagem"
             >
-              <ArrowUpIcon size={16} />
+              <Send size={16} />
             </Button>
           )}
         </div>
