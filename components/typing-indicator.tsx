@@ -1,7 +1,6 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { AssistantLoadingCard } from './assistant-loading';
 
 interface TypingIndicatorProps {
   isVisible: boolean;
@@ -15,13 +14,26 @@ export function TypingIndicator({ isVisible }: TypingIndicatorProps) {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -10 }}
-      className="flex gap-3 w-full max-w-4xl mx-auto mb-6"
+      className="flex items-center gap-2 text-sm text-muted-foreground p-4"
     >
-      {/* Loading Card */}
-      <div className="flex flex-col gap-2 max-w-xs md:max-w-md lg:max-w-lg">
-        <div className="bg-card text-card-foreground rounded-2xl rounded-bl-sm shadow-sm border border-border">
-          <AssistantLoadingCard />
-        </div>
+      <span>IA está digitando</span>
+      <div className="flex gap-1">
+        {[0, 1, 2].map((i) => (
+          <motion.div
+            key={i}
+            className="w-1.5 h-1.5 rounded-full bg-purple-500"
+            animate={{
+              opacity: [0.3, 1, 0.3],
+              scale: [1, 1.2, 1],
+            }}
+            transition={{
+              duration: 1.2,
+              repeat: Infinity,
+              delay: i * 0.2,
+              ease: 'easeInOut',
+            }}
+          />
+        ))}
       </div>
     </motion.div>
   );
