@@ -146,7 +146,7 @@ export function Chat({
   return (
     <div className="flex h-screen p-4 bg-muted/30">
       <div className="flex-1 relative">
-        <div className="relative flex flex-col h-full rounded-lg overflow-hidden bg-background">
+        <div className="relative flex flex-col h-full rounded-lg overflow-hidden bg-background border border-gray-200 dark:border-purple-custom-500">
           <BorderAnimation showAnimation={showAnimation} />
           <ChatHeader
             selectedModelId={initialChatModel}
@@ -174,7 +174,7 @@ export function Chat({
           />
 
           {!isReadonly && (
-            <div className="border-t border-border px-6 py-4 bg-background">
+            <div className="border-t border-gray-200 dark:border-purple-custom-500 px-6 py-4 bg-background">
               <div className="max-w-4xl mx-auto">
                 <MultimodalInput
                   chatId={id}
