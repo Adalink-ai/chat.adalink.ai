@@ -32,4 +32,5 @@ export {
   Pen as PenIcon,
   Globe as GlobeIcon,
   Lock as LockIcon,
+  Send as SendIcon,
 } from 'lucide-react';
