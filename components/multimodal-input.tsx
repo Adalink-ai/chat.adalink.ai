@@ -1,7 +1,6 @@
 'use client';
 
 import type { UIMessage } from 'ai';
-import cx from 'classnames';
 import type React from 'react';
 import {
   useRef,
@@ -16,17 +15,16 @@ import {
 import { toast } from 'sonner';
 import { useLocalStorage, useWindowSize } from 'usehooks-ts';
 
-import { ArrowUpIcon, PaperclipIcon, StopIcon } from './icons';
+import { ArrowUpIcon, StopIcon , ChevronDownIcon } from './icons';
 import { PreviewAttachment } from './preview-attachment';
 import { Button } from './ui/button';
 import { Textarea } from './ui/textarea';
 import { SuggestedActions } from './suggested-actions';
+import { ActionButtons } from './action-buttons';
 import equal from 'fast-deep-equal';
 import type { UseChatHelpers } from '@ai-sdk/react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { ArrowDown } from 'lucide-react';
 import { useScrollToBottom } from '@/hooks/use-scroll-to-bottom';
-import type { VisibilityType } from './visibility-selector';
 import type { Attachment, ChatMessage } from '@/lib/types';
 
 function PureMultimodalInput({
@@ -40,7 +38,6 @@ function PureMultimodalInput({
   messages,
   setMessages,
   sendMessage,
-  className,
 }: {
   chatId: string;
   input: string;
@@ -52,7 +49,6 @@ function PureMultimodalInput({
   messages: Array<UIMessage>;
   setMessages: UseChatHelpers<ChatMessage>['setMessages'];
   sendMessage: UseChatHelpers<ChatMessage>['sendMessage'];
-  className?: string;
 }) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { width } = useWindowSize();
@@ -226,7 +222,7 @@ function PureMultimodalInput({
                 scrollToBottom();
               }}
             >
-              <ArrowDown />
+              <ChevronDownIcon />
             </Button>
           </motion.div>
         )}
@@ -235,10 +231,7 @@ function PureMultimodalInput({
       {messages.length === 0 &&
         attachments.length === 0 &&
         uploadQueue.length === 0 && (
-          <SuggestedActions
-            sendMessage={sendMessage}
-            chatId={chatId}
-          />
+          <SuggestedActions sendMessage={sendMessage} chatId={chatId} />
         )}
 
       <input
@@ -273,49 +266,106 @@ function PureMultimodalInput({
         </div>
       )}
 
-      <Textarea
-        data-testid="multimodal-input"
-        ref={textareaRef}
-        placeholder="Send a message..."
-        value={input}
-        onChange={handleInput}
-        className={cx(
-          'min-h-[24px] max-h-[calc(75dvh)] overflow-hidden resize-none rounded-2xl !text-base bg-muted pb-10 dark:border-zinc-700',
-          className,
-        )}
-        rows={2}
-        autoFocus
-        onKeyDown={(event) => {
-          if (
-            event.key === 'Enter' &&
-            !event.shiftKey &&
-            !event.nativeEvent.isComposing
-          ) {
-            event.preventDefault();
+      <div className="flex items-center gap-4">
+        <ActionButtons
+          onFileSelect={(files) => {
+            // Handle file upload logic here
+            console.log('Files selected:', files);
+          }}
+          onMicrophoneClick={() => {
+            // Handle microphone logic here
+            console.log('Microphone clicked');
+          }}
+          disabled={status !== 'ready'}
+        />
 
-            if (status !== 'ready') {
-              toast.error('Please wait for the model to finish its response!');
-            } else {
-              submitForm();
+        <div className="flex-1 relative">
+          <Textarea
+            data-testid="multimodal-input"
+            ref={textareaRef}
+            placeholder="Digite sua mensagem..."
+            value={input}
+            onChange={handleInput}
+            className="pr-16 py-4 px-6 text-base border border-gray-200 rounded-lg shadow-sm transition-all duration-200 resize-none min-h-[60px] bg-gray-50"
+            style={
+              {
+                '--focus-border-color': '#B800C9',
+                '--focus-ring-color': 'rgba(184, 0, 201, 0.1)',
+              } as React.CSSProperties
             }
-          }
-        }}
-      />
+            onFocus={(e) => {
+              e.target.style.borderColor = '#B800C9';
+              e.target.style.boxShadow = '0 0 0 1px rgba(184, 0, 201, 0.1)';
+            }}
+            onBlur={(e) => {
+              e.target.style.borderColor = '#d1d5db';
+              e.target.style.boxShadow = 'none';
+            }}
+            rows={1}
+            autoFocus
+            onKeyDown={(event) => {
+              if (
+                event.key === 'Enter' &&
+                !event.shiftKey &&
+                !event.nativeEvent.isComposing
+              ) {
+                event.preventDefault();
 
-      <div className="absolute bottom-0 p-2 w-fit flex flex-row justify-start">
-        <AttachmentsButton fileInputRef={fileInputRef} status={status} />
-      </div>
-
-      <div className="absolute bottom-0 right-0 p-2 w-fit flex flex-row justify-end">
-        {status === 'submitted' ? (
-          <StopButton stop={stop} setMessages={setMessages} />
-        ) : (
-          <SendButton
-            input={input}
-            submitForm={submitForm}
-            uploadQueue={uploadQueue}
+                if (status !== 'ready') {
+                  toast.error(
+                    'Please wait for the model to finish its response!',
+                  );
+                } else {
+                  submitForm();
+                }
+              }
+            }}
           />
-        )}
+
+          {status === 'submitted' ? (
+            <Button
+              data-testid="stop-button"
+              className="absolute right-3 top-1/2 -translate-y-1/2 size-10 rounded-full bg-red-500 hover:bg-red-600 text-white p-0"
+              onClick={(event) => {
+                event.preventDefault();
+                stop();
+                setMessages((messages) => messages);
+              }}
+              title="Parar"
+            >
+              <StopIcon size={16} />
+            </Button>
+          ) : (
+            <Button
+              data-testid="send-button"
+              onClick={(event) => {
+                event.preventDefault();
+                submitForm();
+              }}
+              disabled={input.length === 0 || uploadQueue.length > 0}
+              className="absolute right-3 top-1/2 -translate-y-1/2 size-10 rounded-full disabled:bg-gray-300 disabled:cursor-not-allowed p-0 transition-colors duration-200"
+              style={{
+                backgroundColor:
+                  input.length === 0 || uploadQueue.length > 0
+                    ? undefined
+                    : '#B800C9',
+              }}
+              onMouseEnter={(e) => {
+                if (!(input.length === 0 || uploadQueue.length > 0)) {
+                  e.currentTarget.style.backgroundColor = '#9300A1';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!(input.length === 0 || uploadQueue.length > 0)) {
+                  e.currentTarget.style.backgroundColor = '#B800C9';
+                }
+              }}
+              title="Enviar mensagem"
+            >
+              <ArrowUpIcon size={16} />
+            </Button>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -331,83 +381,3 @@ export const MultimodalInput = memo(
     return true;
   },
 );
-
-function PureAttachmentsButton({
-  fileInputRef,
-  status,
-}: {
-  fileInputRef: React.MutableRefObject<HTMLInputElement | null>;
-  status: UseChatHelpers<ChatMessage>['status'];
-}) {
-  return (
-    <Button
-      data-testid="attachments-button"
-      className="rounded-md rounded-bl-lg p-[7px] h-fit dark:border-zinc-700 hover:dark:bg-zinc-900 hover:bg-zinc-200"
-      onClick={(event) => {
-        event.preventDefault();
-        fileInputRef.current?.click();
-      }}
-      disabled={status !== 'ready'}
-      variant="ghost"
-    >
-      <PaperclipIcon size={14} />
-    </Button>
-  );
-}
-
-const AttachmentsButton = memo(PureAttachmentsButton);
-
-function PureStopButton({
-  stop,
-  setMessages,
-}: {
-  stop: () => void;
-  setMessages: UseChatHelpers<ChatMessage>['setMessages'];
-}) {
-  return (
-    <Button
-      data-testid="stop-button"
-      className="rounded-full p-1.5 h-fit border dark:border-zinc-600"
-      onClick={(event) => {
-        event.preventDefault();
-        stop();
-        setMessages((messages) => messages);
-      }}
-    >
-      <StopIcon size={14} />
-    </Button>
-  );
-}
-
-const StopButton = memo(PureStopButton);
-
-function PureSendButton({
-  submitForm,
-  input,
-  uploadQueue,
-}: {
-  submitForm: () => void;
-  input: string;
-  uploadQueue: Array<string>;
-}) {
-  return (
-    <Button
-      data-testid="send-button"
-      className="rounded-full p-1.5 h-fit border dark:border-zinc-600"
-      onClick={(event) => {
-        event.preventDefault();
-        submitForm();
-      }}
-      disabled={input.length === 0 || uploadQueue.length > 0}
-    >
-      <ArrowUpIcon size={14} />
-    </Button>
-  );
-}
-
-const SendButton = memo(PureSendButton, (prevProps, nextProps) => {
-  if (prevProps.uploadQueue.length !== nextProps.uploadQueue.length)
-    return false;
-  if (prevProps.input !== nextProps.input) return false;
-  return true;
-});
