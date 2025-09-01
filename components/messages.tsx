@@ -42,7 +42,7 @@ function PureMessages({ chatId, status, messages, session }: MessagesProps) {
         className="absolute inset-0 overflow-y-auto p-6"
       >
         <div className="max-w-4xl mx-auto">
-          {messages.length === 0 && <Greeting />}
+          {messages.length === 0 && <Greeting session={session} />}
 
           {messages.map((message) => (
             <MessageBubble
