@@ -29,7 +29,7 @@ export function SidebarToggle({
             <SidebarLeftIcon size={16} />
           ) : (
             <Image
-              src="/images/logo-adaflow.png"
+              src="/images/logo-light.svg"
               alt="Adalink"
               width={18}
               height={18}
