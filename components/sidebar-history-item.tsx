@@ -6,7 +6,8 @@ import {
   Share,
   Globe,
   Lock,
- CheckCircle } from 'lucide-react';
+  CheckCircle,
+} from 'lucide-react';
 import Link from 'next/link';
 import { Button } from './ui/button';
 import {
@@ -133,7 +134,7 @@ const PureChatItem = ({
                         onSelect={() => onDelete(chat.id)}
                       >
                         <Trash2 className="size-4" />
-                        <span>Delete</span>
+                        <span>Excluir</span>
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
