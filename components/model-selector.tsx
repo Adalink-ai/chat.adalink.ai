@@ -22,7 +22,8 @@ export function ModelSelector({
   className,
 }: {
   selectedModelId: string;
-} & React.ComponentProps<typeof Button>) {
+  className?: string;
+}) {
   const [open, setOpen] = useState(false);
 
   const { data: models } = useSWR<ChatModel[]>(
@@ -107,15 +108,12 @@ export function ModelSelector({
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger
         asChild
-        className={cn(
-          'w-fit data-[state=open]:bg-accent data-[state=open]:text-accent-foreground',
-          className,
-        )}
+        className="w-fit data-[state=open]:bg-accent data-[state=open]:text-accent-foreground"
       >
         <Button
           data-testid="model-selector"
           variant="outline"
-          className="md:px-2 md:h-[34px]"
+          className={cn('md:px-2 md:h-[34px]', className)}
         >
           {selectedChatModel?.name}
           <ChevronDownIcon />
