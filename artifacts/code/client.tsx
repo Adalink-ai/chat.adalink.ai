@@ -2,9 +2,9 @@ import { Artifact } from '@/components/create-artifact';
 import { CodeEditor } from '@/components/code-editor';
 import {
   CopyIcon,
-  LogsIcon,
+
   MessageIcon,
-  PlayIcon,
+
   RedoIcon,
   UndoIcon,
 } from '@/components/icons';
@@ -15,6 +15,7 @@ import {
   type ConsoleOutput,
   type ConsoleOutputContent,
 } from '@/components/console';
+import { LogsIcon, PlayIcon } from 'lucide-react';
 
 const OUTPUT_HANDLERS = {
   matplotlib: `
