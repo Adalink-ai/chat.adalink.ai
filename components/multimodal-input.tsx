@@ -15,7 +15,7 @@ import {
 import { toast } from 'sonner';
 import { useLocalStorage, useWindowSize } from 'usehooks-ts';
 
-import { ArrowUpIcon, StopIcon, ChevronDownIcon } from './icons';
+import { SendIcon, StopIcon, ChevronDownIcon } from './icons';
 import { PreviewAttachment } from './preview-attachment';
 import { Button } from './ui/button';
 import { Textarea } from './ui/textarea';
@@ -26,7 +26,6 @@ import type { UseChatHelpers } from '@ai-sdk/react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useScrollToBottom } from '@/hooks/use-scroll-to-bottom';
 import type { Attachment, ChatMessage } from '@/lib/types';
-import { Send } from 'lucide-react';
 
 function PureMultimodalInput({
   chatId,
@@ -291,21 +290,7 @@ function PureMultimodalInput({
             placeholder="Digite sua mensagem..."
             value={input}
             onChange={handleInput}
-            className="pr-16 py-4 px-6 text-base border border-gray-200 rounded-lg shadow-sm transition-all duration-200 resize-none min-h-[60px] bg-gray-50"
-            style={
-              {
-                '--focus-border-color': '#B800C9',
-                '--focus-ring-color': 'rgba(184, 0, 201, 0.1)',
-              } as React.CSSProperties
-            }
-            onFocus={(e) => {
-              e.target.style.borderColor = '#B800C9';
-              e.target.style.boxShadow = '0 0 0 1px rgba(184, 0, 201, 0.1)';
-            }}
-            onBlur={(e) => {
-              e.target.style.borderColor = '#d1d5db';
-              e.target.style.boxShadow = 'none';
-            }}
+            className="pr-16 py-4 px-6 text-base border border-border rounded-lg shadow-sm transition-all duration-200 resize-none min-h-[60px] bg-background text-foreground focus:border-purple-custom-500 focus:ring-1 focus:ring-purple-custom-500/20 focus:outline-none"
             rows={1}
             autoFocus
             onKeyDown={(event) => {
@@ -348,26 +333,10 @@ function PureMultimodalInput({
                 submitForm();
               }}
               disabled={input.length === 0 || uploadQueue.length > 0}
-              className="absolute right-3 top-1/2 -translate-y-1/2 size-10 rounded-lg disabled:bg-gray-300 disabled:cursor-not-allowed p-0 transition-colors duration-200"
-              style={{
-                backgroundColor:
-                  input.length === 0 || uploadQueue.length > 0
-                    ? undefined
-                    : '#B800C9',
-              }}
-              onMouseEnter={(e) => {
-                if (!(input.length === 0 || uploadQueue.length > 0)) {
-                  e.currentTarget.style.backgroundColor = '#9300A1';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!(input.length === 0 || uploadQueue.length > 0)) {
-                  e.currentTarget.style.backgroundColor = '#B800C9';
-                }
-              }}
+              className="absolute right-3 top-1/2 -translate-y-1/2 size-10 rounded-lg disabled:bg-muted disabled:cursor-not-allowed p-0 transition-colors duration-200 bg-purple-custom-500 hover:bg-purple-custom-600 enabled:hover:bg-purple-custom-600 text-white"
               title="Enviar mensagem"
             >
-              <Send size={16} />
+              <SendIcon size={16} />
             </Button>
           )}
         </div>
