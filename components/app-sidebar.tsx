@@ -65,7 +65,7 @@ export function AppSidebar({ user }: { user: User | undefined }) {
               className="flex justify-center items-center mt-3"
             >
               <Image
-                src="/images/logo-adaflow.jpg"
+                src="/images/logo-light.svg"
                 alt="AdaFlow Logo"
                 width={130}
                 height={40}
