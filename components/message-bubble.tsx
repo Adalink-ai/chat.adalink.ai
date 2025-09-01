@@ -33,7 +33,7 @@ export function MessageBubble({ message, session }: MessageBubbleProps) {
               className="size-6 rounded-full object-cover"
             />
           ) : (
-            <div className="size-6 rounded-full bg-white"></div>
+            <div className="size-6 rounded-full bg-card border border-border"></div>
           )
         ) : (
           <div className="size-8 rounded-full flex items-center justify-center text-white bg-purple-custom-500">
@@ -49,7 +49,7 @@ export function MessageBubble({ message, session }: MessageBubbleProps) {
             'px-4 py-3 rounded-2xl',
             isUser
               ? 'bg-purple-custom-500 text-white rounded-br-sm'
-              : 'bg-white text-gray-900 rounded-bl-sm shadow-sm border border-gray-200',
+              : 'bg-card text-card-foreground rounded-bl-sm shadow-sm border border-border',
           )}
         >
           <Markdown>{sanitizeText(textContent)}</Markdown>
