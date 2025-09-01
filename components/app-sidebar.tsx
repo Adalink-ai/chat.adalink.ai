@@ -27,7 +27,7 @@ export function AppSidebar({ user }: { user: User | undefined }) {
 
   return (
     <Sidebar
-      className="group-data-[side=left]:border-r-0 bg-sidebar-custom"
+      className="group-data-[side=left]:border-r border-r-gray-300 bg-sidebar-custom rounded-tr-xl rounded-br-xl shadow-lg"
       collapsible="icon"
     >
       <SidebarHeader>
@@ -77,19 +77,11 @@ export function AppSidebar({ user }: { user: User | undefined }) {
               placeholder="Buscar conversas..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md
-focus:outline-none focus:border-none focus:ring-0"
+              className="w-full px-3 py-2 text-sm border border-border rounded-md bg-background text-foreground focus:outline-none focus:border-gray-300 focus:ring-0"
             />
             <Button
               type="button"
-              className="px-4 py-2 text-white text-sm font-medium rounded-md transition-colors duration-200 w-full"
-              style={{ backgroundColor: '#B800C9' }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#9300A1';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = '#B800C9';
-              }}
+              className="px-4 py-2 text-white text-sm font-medium rounded-md transition-colors duration-200 w-full bg-purple-custom-500 hover:bg-purple-custom-600"
               onClick={() => {
                 setOpenMobile(false);
                 router.push('/');
@@ -101,7 +93,7 @@ focus:outline-none focus:border-none focus:ring-0"
           </div>
         </SidebarMenu>
       </SidebarHeader>
-      <SidebarContent className="group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:flex-col group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:px-2">
+      <SidebarContent className="group-data-[collapsible=icon]:flex group-data-[collapsible=icon]:flex-col group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:px-2 custom-scrollbar">
         <SidebarHistory user={user} searchQuery={searchQuery} />
       </SidebarContent>
       <SidebarFooter className="group-data-[collapsible=icon]:hidden">
