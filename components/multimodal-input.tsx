@@ -290,7 +290,7 @@ function PureMultimodalInput({
             placeholder="Digite sua mensagem..."
             value={input}
             onChange={handleInput}
-            className="pr-16 py-4 px-6 text-base border border-border rounded-lg shadow-sm transition-all duration-200 resize-none min-h-[60px] bg-background text-foreground focus:border-purple-custom-500 focus:ring-1 focus:ring-purple-custom-500/20 focus:outline-none"
+            className="pr-16 py-4 px-6 text-base border border-gray-200 dark:border-purple-custom-500 rounded-lg shadow-sm transition-all duration-200 resize-none min-h-[60px] bg-background text-foreground focus:border-gray-300 dark:focus:border-purple-custom-500 focus:ring-0 focus:outline-none"
             rows={1}
             autoFocus
             onKeyDown={(event) => {
