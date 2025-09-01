@@ -3,7 +3,7 @@
 import type { User } from 'next-auth';
 import { useRouter } from 'next/navigation';
 
-import { ChevronLeft, Menu } from 'lucide-react';
+import { ChevronLeftIcon, MenuIcon } from './icons';
 import Image from 'next/image';
 import { SidebarHistory } from '@/components/sidebar-history';
 import { SidebarUserNav } from '@/components/sidebar-user-nav';
@@ -41,7 +41,7 @@ export function AppSidebar({ user }: { user: User | undefined }) {
               onClick={() => toggleSidebar()}
               title="Expandir menu"
             >
-              <Menu size={16} />
+              <MenuIcon size={16} />
             </Button>
           </div>
 
@@ -54,7 +54,7 @@ export function AppSidebar({ user }: { user: User | undefined }) {
                 className="size-8"
                 onClick={() => toggleSidebar()}
               >
-                <ChevronLeft size={16} />
+                <ChevronLeftIcon size={16} />
               </Button>
             </div>
             <Link
