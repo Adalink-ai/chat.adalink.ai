@@ -42,6 +42,8 @@ export function Chat({
 
   const [input, setInput] = useState<string>('');
   const [showAnimation, setShowAnimation] = useState(false);
+  const [selectedChatModel, setSelectedChatModel] =
+    useState<string>(initialChatModel);
 
   const {
     messages,
