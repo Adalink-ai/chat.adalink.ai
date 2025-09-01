@@ -61,7 +61,7 @@ const PureChatItem = ({
           className={`p-3 rounded-lg cursor-pointer transition-colors group relative group-data-[collapsible=icon]:hidden ${
             isActive
               ? 'bg-purple-custom-50 border-l-4 border-purple-custom-600'
-              : 'hover:bg-gray-50'
+              : 'hover:bg-gray-50 dark:hover:bg-gray-800/50'
           }`}
         >
           <div className="flex items-start gap-3">
@@ -70,11 +70,11 @@ const PureChatItem = ({
             </div>
             <div className="flex-1 min-w-0 overflow-hidden">
               <div className="flex items-start justify-between gap-2">
-                <h3 className="font-medium text-sm leading-tight line-clamp-1 text-gray-900">
+                <h3 className="font-medium text-sm leading-tight line-clamp-1 text-gray-900 dark:text-gray-300">
                   {chat.title}
                 </h3>
                 <div className="flex items-center gap-1 shrink-0">
-                  <span className="text-xs text-gray-500">
+                  <span className="text-xs text-gray-500 dark:text-gray-400">
                     {formatTimestamp(new Date(chat.createdAt))}
                   </span>
                   <DropdownMenu modal={true}>
