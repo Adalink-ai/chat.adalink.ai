@@ -72,6 +72,13 @@ const config: Config = {
           border: 'hsl(var(--sidebar-border))',
           ring: 'hsl(var(--sidebar-ring))',
         },
+        'sidebar-custom': '#efedef',
+        'purple-custom': {
+          '500': '#B800C9',
+          '600': '#9300A1',
+          '100': '#F3E8FF',
+          '50': '#FAF5FF',
+        },
       },
     },
   },
