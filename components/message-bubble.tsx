@@ -33,7 +33,7 @@ export function MessageBubble({ message, session }: MessageBubbleProps) {
               className="size-6 rounded-full object-cover"
             />
           ) : (
-            <div className="size-6 rounded-full bg-card border border-border"></div>
+            <div className="size-6 rounded-full bg-card border border-border" />
           )
         ) : (
           <div className="size-8 rounded-full flex items-center justify-center text-white bg-purple-custom-500">
