@@ -8,12 +8,16 @@ interface ActionButtonsProps {
   onFileSelect?: (files: FileList) => void;
   onMicrophoneClick?: () => void;
   disabled?: boolean;
+  isVoiceSupported?: boolean;
+  isListening?: boolean;
 }
 
 export function ActionButtons({
   onFileSelect,
   onMicrophoneClick,
   disabled = false,
+  isVoiceSupported = false,
+  isListening = false,
 }: ActionButtonsProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -57,12 +61,25 @@ export function ActionButtons({
         type="button"
         variant="ghost"
         size="icon"
-        className="size-10 text-gray-500 hover:text-gray-700 hover:bg-gray-100"
+        className={`size-10 transition-all duration-200 ${
+          isListening
+            ? 'text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 animate-pulse'
+            : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+        }`}
         onClick={onMicrophoneClick}
-        disabled={disabled}
-        title="Gravação de áudio"
+        disabled={disabled || !isVoiceSupported}
+        title={
+          !isVoiceSupported
+            ? 'Gravação de voz não suportada neste navegador'
+            : isListening
+              ? 'Parar gravação'
+              : 'Iniciar gravação de voz'
+        }
       >
         <MicrophoneIcon size={18} />
+        {isListening && (
+          <div className="absolute -top-1 -right-1 size-2 bg-red-500 rounded-full animate-pulse" />
+        )}
       </Button>
     </div>
   );
