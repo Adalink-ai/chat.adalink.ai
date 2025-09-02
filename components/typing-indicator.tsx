@@ -28,7 +28,7 @@ export function TypingIndicator({ isVisible }: TypingIndicatorProps) {
             }}
             transition={{
               duration: 1.2,
-              repeat: Infinity,
+              repeat: Number.POSITIVE_INFINITY,
               delay: i * 0.2,
               ease: 'easeInOut',
             }}
