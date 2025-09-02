@@ -25,6 +25,7 @@ import equal from 'fast-deep-equal';
 import type { UseChatHelpers } from '@ai-sdk/react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useScrollToBottom } from '@/hooks/use-scroll-to-bottom';
+import { useVoiceRecognition } from '@/hooks/use-voice-recognition';
 import type { Attachment, ChatMessage } from '@/lib/types';
 
 function PureMultimodalInput({
@@ -52,6 +53,7 @@ function PureMultimodalInput({
 }) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { width } = useWindowSize();
+  const [interimTranscript, setInterimTranscript] = useState('');
 
   useEffect(() => {
     if (textareaRef.current) {
@@ -101,6 +103,36 @@ function PureMultimodalInput({
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploadQueue, setUploadQueue] = useState<Array<string>>([]);
+
+  // Voice recognition setup
+  const {
+    isListening,
+    isSupported: isVoiceSupported,
+    toggleListening,
+  } = useVoiceRecognition({
+    onTranscriptChange: (transcript, isFinal) => {
+      if (isFinal) {
+        // When speech is final, append to existing input with a space
+        setInput((prevInput) => {
+          const newInput =
+            prevInput.trim() +
+            (prevInput.trim() ? ' ' : '') +
+            transcript.trim();
+          return newInput;
+        });
+        setInterimTranscript(''); // Clear interim results
+        setTimeout(adjustHeight, 0); // Adjust height after adding text
+      } else {
+        // Show interim results in real-time
+        setInterimTranscript(transcript);
+      }
+    },
+    onError: (error) => {
+      console.error('Voice recognition error:', error);
+      toast.error(`Erro na gravação de voz: ${error}`);
+      setInterimTranscript('');
+    },
+  });
 
   const submitForm = useCallback(() => {
     window.history.replaceState({}, '', `/chat/${chatId}`);
@@ -201,6 +233,9 @@ function PureMultimodalInput({
     }
   }, [status, scrollToBottom]);
 
+  const displayValue =
+    input + (interimTranscript && isListening ? ` ${interimTranscript}` : '');
+
   return (
     <div className="relative w-full flex flex-col gap-4">
       <AnimatePresence>
@@ -276,10 +311,9 @@ function PureMultimodalInput({
               } as ChangeEvent<HTMLInputElement>);
             }
           }}
-          onMicrophoneClick={() => {
-            // Handle microphone logic here
-            console.log('Microphone clicked');
-          }}
+          onMicrophoneClick={toggleListening}
+          isVoiceSupported={isVoiceSupported}
+          isListening={isListening}
           disabled={status !== 'ready'}
         />
 
@@ -287,10 +321,12 @@ function PureMultimodalInput({
           <Textarea
             data-testid="multimodal-input"
             ref={textareaRef}
-            placeholder="Digite sua mensagem..."
-            value={input}
+            placeholder="Digite sua mensagem ou use o microfone..."
+            value={displayValue}
             onChange={handleInput}
-            className="pr-16 py-4 px-6 text-base border border-gray-200 dark:border-purple-custom-500 rounded-lg shadow-sm transition-all duration-200 resize-none min-h-[60px] bg-background text-foreground focus:border-gray-300 dark:focus:border-purple-custom-500 focus:ring-0 focus:outline-none"
+            className={`pr-16 py-4 px-6 text-base border border-gray-200 dark:border-purple-custom-500 rounded-lg shadow-sm transition-all duration-200 resize-none min-h-[60px] bg-background text-foreground focus:border-gray-300 dark:focus:border-purple-custom-500 focus:ring-0 focus:outline-none ${
+              interimTranscript && isListening ? 'text-gray-600' : ''
+            }`}
             rows={1}
             autoFocus
             onKeyDown={(event) => {
@@ -311,6 +347,13 @@ function PureMultimodalInput({
               }
             }}
           />
+
+          {isListening && (
+            <div className="absolute right-16 top-1/2 -translate-y-1/2 flex items-center gap-2 text-red-500 text-sm">
+              <div className="size-2 bg-red-500 rounded-full animate-pulse" />
+              <span>Ouvindo...</span>
+            </div>
+          )}
 
           {status === 'submitted' ? (
             <Button
