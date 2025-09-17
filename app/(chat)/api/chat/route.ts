@@ -37,6 +37,7 @@ import type { ChatMessage } from '@/lib/types';
 import type { ChatModel } from '@/lib/ai/models';
 import type { VisibilityType } from '@/components/visibility-selector';
 import { gateway } from '@ai-sdk/gateway';
+import { myProvider } from '@/lib/ai/providers';
 
 export const maxDuration = 60;
 
@@ -93,7 +94,7 @@ export async function POST(request: Request) {
       selectedChatModel,
       selectedVisibilityType,
       messageId: message.id,
-      hasXaiKey: !!process.env.XAI_API_KEY
+      hasXaiKey: !!process.env.XAI_API_KEY,
     });
 
     const session = await auth();
@@ -161,13 +162,23 @@ export async function POST(request: Request) {
     const streamId = generateUUID();
     await createStreamId({ streamId, chatId: id });
 
-    console.log('[DEBUG] About to call streamText with model:', selectedChatModel);
-    
+    console.log(
+      '[DEBUG] About to call streamText with model:',
+      selectedChatModel,
+    );
+
     const stream = createUIMessageStream({
       execute: ({ writer: dataStream }) => {
         console.log('[DEBUG] Executing streamText...');
         const result = streamText({
-          model: gateway(selectedChatModel),
+          model: [
+            'chat-model',
+            'chat-model-reasoning',
+            'title-model',
+            'artifact-model',
+          ].includes(selectedChatModel)
+            ? myProvider.languageModel(selectedChatModel)
+            : gateway(selectedChatModel),
           system: systemPrompt({ selectedChatModel, requestHints }),
           messages: convertToModelMessages(uiMessages),
           stopWhen: stepCountIs(5),
@@ -222,7 +233,7 @@ export async function POST(request: Request) {
         console.error('[DEBUG] StreamText error details:', {
           message: (error as any)?.message,
           stack: (error as any)?.stack,
-          name: (error as any)?.name
+          name: (error as any)?.name,
         });
         return 'Oops, an error occurred!';
       },
@@ -245,9 +256,9 @@ export async function POST(request: Request) {
       message: (error as any)?.message,
       stack: (error as any)?.stack,
       name: (error as any)?.name,
-      cause: (error as any)?.cause
+      cause: (error as any)?.cause,
     });
-    
+
     if (error instanceof ChatSDKError) {
       return error.toResponse();
     }

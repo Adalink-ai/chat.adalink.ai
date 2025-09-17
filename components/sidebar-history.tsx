@@ -93,7 +93,10 @@ export function getChatHistoryPaginationKey(
   return `/api/history?ending_before=${firstChatFromPage.id}&limit=${PAGE_SIZE}`;
 }
 
-export function SidebarHistory({ user }: { user: User | undefined }) {
+export function SidebarHistory({
+  user,
+  searchQuery,
+}: { user: User | undefined; searchQuery?: string }) {
   const { setOpenMobile } = useSidebar();
   const { id } = useParams();
 
@@ -212,13 +215,21 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
                   (paginatedChatHistory) => paginatedChatHistory.chats,
                 );
 
-                const groupedChats = groupChatsByDate(chatsFromHistory);
+                const filteredChats = searchQuery
+                  ? chatsFromHistory.filter((chat) =>
+                      chat.title
+                        ?.toLowerCase()
+                        .includes(searchQuery.toLowerCase()),
+                    )
+                  : chatsFromHistory;
+
+                const groupedChats = groupChatsByDate(filteredChats);
 
                 return (
-                  <div className="flex flex-col gap-6">
+                  <div className="flex flex-col gap-6 group-data-[collapsible=icon]:gap-1 group-data-[collapsible=icon]:items-center">
                     {groupedChats.today.length > 0 && (
                       <div>
-                        <div className="px-2 py-1 text-xs text-sidebar-foreground/50">
+                        <div className="px-2 py-1 text-xs text-sidebar-foreground/50 group-data-[collapsible=icon]:hidden">
                           Today
                         </div>
                         {groupedChats.today.map((chat) => (
@@ -238,7 +249,7 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
 
                     {groupedChats.yesterday.length > 0 && (
                       <div>
-                        <div className="px-2 py-1 text-xs text-sidebar-foreground/50">
+                        <div className="px-2 py-1 text-xs text-sidebar-foreground/50 group-data-[collapsible=icon]:hidden">
                           Yesterday
                         </div>
                         {groupedChats.yesterday.map((chat) => (
@@ -258,7 +269,7 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
 
                     {groupedChats.lastWeek.length > 0 && (
                       <div>
-                        <div className="px-2 py-1 text-xs text-sidebar-foreground/50">
+                        <div className="px-2 py-1 text-xs text-sidebar-foreground/50 group-data-[collapsible=icon]:hidden">
                           Last 7 days
                         </div>
                         {groupedChats.lastWeek.map((chat) => (
@@ -278,7 +289,7 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
 
                     {groupedChats.lastMonth.length > 0 && (
                       <div>
-                        <div className="px-2 py-1 text-xs text-sidebar-foreground/50">
+                        <div className="px-2 py-1 text-xs text-sidebar-foreground/50 group-data-[collapsible=icon]:hidden">
                           Last 30 days
                         </div>
                         {groupedChats.lastMonth.map((chat) => (
@@ -298,7 +309,7 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
 
                     {groupedChats.older.length > 0 && (
                       <div>
-                        <div className="px-2 py-1 text-xs text-sidebar-foreground/50">
+                        <div className="px-2 py-1 text-xs text-sidebar-foreground/50 group-data-[collapsible=icon]:hidden">
                           Older than last month
                         </div>
                         {groupedChats.older.map((chat) => (
@@ -329,9 +340,7 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
           />
 
           {hasReachedEnd ? (
-            <div className="px-2 text-zinc-500 w-full flex flex-row justify-center items-center text-sm gap-2 mt-8">
-              You have reached the end of your chat history.
-            </div>
+            <></>
           ) : (
             <div className="p-2 text-zinc-500 dark:text-zinc-400 flex flex-row gap-2 items-center mt-8">
               <div className="animate-spin">
@@ -346,16 +355,16 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogTitle>Tem certeza absoluta?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete your
-              chat and remove it from our servers.
+              Esta ação não pode ser desfeita. Isso excluirá permanentemente seu
+              chat e o removerá de nossos servidores.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction onClick={handleDelete}>
-              Continue
+              Excluir
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
