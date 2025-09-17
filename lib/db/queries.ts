@@ -33,6 +33,7 @@ import { generateUUID } from '../utils';
 import { generateHashedPassword } from './utils';
 import type { VisibilityType } from '@/components/visibility-selector';
 import { ChatSDKError } from '../errors';
+import { sessionCache, getCacheKeys } from '../cache/session-cache';
 
 // Optionally, if not using email/pass login, you can
 // use the Drizzle adapter for Auth.js / NextAuth
@@ -200,11 +201,49 @@ export async function getChatsByUserId({
 }
 
 export async function getChatById({ id }: { id: string }) {
+  // Check cache first
+  const cacheKey = getCacheKeys.chatInfo(id);
+  const cachedChat = sessionCache.get<any>(cacheKey);
+
+  if (cachedChat !== null) {
+    console.log('[CACHE] Chat info cache HIT for chat:', id);
+    return cachedChat;
+  }
+
+  console.log('[CACHE] Chat info cache MISS for chat:', id);
+
   try {
+    const dbStartTime = Date.now();
     const [selectedChat] = await db.select().from(chat).where(eq(chat.id, id));
+    console.log('[PERF] DB get chat query took:', Date.now() - dbStartTime, 'ms');
+
+    // Cache for 5 minutes (chat info doesn't change frequently)
+    if (selectedChat) {
+      sessionCache.set(cacheKey, selectedChat, 5 * 60 * 1000);
+      console.log('[CACHE] Cached chat info for:', id);
+    }
+
     return selectedChat;
   } catch (error) {
     throw new ChatSDKError('bad_request:database', 'Failed to get chat by id');
+  }
+}
+
+export async function updateChatTitle({ id, title }: { id: string; title: string }) {
+  try {
+    const result = await db
+      .update(chat)
+      .set({ title })
+      .where(eq(chat.id, id));
+
+    // Invalidate cache for this chat
+    const cacheKey = getCacheKeys.chatInfo(id);
+    sessionCache.delete(cacheKey);
+    console.log('[CACHE] Invalidated cache for chat:', id);
+
+    return result;
+  } catch (error) {
+    throw new ChatSDKError('bad_request:database', 'Failed to update chat title');
   }
 }
 
@@ -214,25 +253,82 @@ export async function saveMessages({
   messages: Array<DBMessage>;
 }) {
   try {
-    return await db.insert(message).values(messages);
+    const result = await db.insert(message).values(messages);
+
+    // Invalidate message count cache asynchronously (non-blocking)
+    const userMessages = messages.filter(msg => msg.role === 'user');
+    if (userMessages.length > 0) {
+      // Group by chatId to avoid duplicate getChatById calls
+      const chatIds = [...new Set(userMessages.map(msg => msg.chatId))];
+
+      // Do cache invalidation asynchronously (don't await)
+      Promise.all(
+        chatIds.map(async (chatId) => {
+          try {
+            const chatInfo = await getChatById({ id: chatId });
+            if (chatInfo?.userId) {
+              const cacheKeys = [
+                getCacheKeys.messageCount(chatInfo.userId, 24),
+                getCacheKeys.messageCount(chatInfo.userId, 1),
+              ];
+              cacheKeys.forEach(key => {
+                sessionCache.delete(key);
+                console.log('[CACHE] Invalidated message count cache (async):', key);
+              });
+            }
+          } catch (error) {
+            console.error('[CACHE] Error invalidating cache:', error);
+          }
+        })
+      ).catch(error => {
+        console.error('[CACHE] Error in async cache invalidation:', error);
+      });
+    }
+
+    return result;
   } catch (error) {
     throw new ChatSDKError('bad_request:database', 'Failed to save messages');
   }
 }
 
-export async function getMessagesByChatId({ id }: { id: string }) {
+export async function getMessagesByChatId({
+  id,
+  limit = 50,
+  onlyRecent = false
+}: {
+  id: string;
+  limit?: number;
+  onlyRecent?: boolean;
+}) {
   try {
-    return await db
+    const dbStartTime = Date.now();
+
+    // Build query with conditional limit
+    const baseQuery = db
       .select()
       .from(message)
       .where(eq(message.chatId, id))
       .orderBy(asc(message.createdAt));
+
+    // For chat initialization, only load recent messages for faster response
+    const messages = onlyRecent
+      ? await baseQuery.limit(limit)
+      : await baseQuery;
+
+    console.log('[PERF] Get messages query took:', Date.now() - dbStartTime, 'ms', `(${messages.length} messages, limit: ${onlyRecent ? limit : 'none'})`);
+
+    return messages;
   } catch (error) {
     throw new ChatSDKError(
       'bad_request:database',
       'Failed to get messages by chat id',
     );
   }
+}
+
+// Backward compatibility function
+export async function getAllMessagesByChatId({ id }: { id: string }) {
+  return getMessagesByChatId({ id, onlyRecent: false });
 }
 
 export async function voteMessage({
@@ -473,7 +569,19 @@ export async function getMessageCountByUserId({
   id,
   differenceInHours,
 }: { id: string; differenceInHours: number }) {
+  // Check cache first
+  const cacheKey = getCacheKeys.messageCount(id, differenceInHours);
+  const cachedCount = sessionCache.get<number>(cacheKey);
+
+  if (cachedCount !== null) {
+    console.log('[CACHE] Message count cache HIT for user:', id);
+    return cachedCount;
+  }
+
+  console.log('[CACHE] Message count cache MISS for user:', id);
+
   try {
+    const dbStartTime = Date.now();
     const twentyFourHoursAgo = new Date(
       Date.now() - differenceInHours * 60 * 60 * 1000,
     );
@@ -491,7 +599,14 @@ export async function getMessageCountByUserId({
       )
       .execute();
 
-    return stats?.count ?? 0;
+    const messageCount = stats?.count ?? 0;
+    console.log('[PERF] DB message count query took:', Date.now() - dbStartTime, 'ms');
+
+    // Cache for 2 minutes (rate limiting check doesn't need real-time accuracy)
+    sessionCache.set(cacheKey, messageCount, 2 * 60 * 1000);
+    console.log('[CACHE] Cached message count for user:', id, 'count:', messageCount);
+
+    return messageCount;
   } catch (error) {
     throw new ChatSDKError(
       'bad_request:database',

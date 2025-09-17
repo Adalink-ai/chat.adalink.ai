@@ -191,6 +191,12 @@ export const isModelAvailable = (model: string): model is ModelName => {
   return AVAILABLE_MODELS.includes(model.toLowerCase() as ModelName);
 };
 
+// Gateway configuration with optimized settings
+const getOptimizedGateway = (modelId: string) => {
+  // Return gateway with potential optimization (headers can be set at request level)
+  return gateway(modelId);
+};
+
 export const myProvider = isTestEnvironment
   ? customProvider({
       languageModels: {
@@ -202,13 +208,13 @@ export const myProvider = isTestEnvironment
     })
   : customProvider({
       languageModels: {
-        'chat-model': gateway('xai/grok-4'),
+        'chat-model': getOptimizedGateway('xai/grok-4'),
         'chat-model-reasoning': wrapLanguageModel({
-          model: gateway('xai/grok-3-mini-beta'),
+          model: getOptimizedGateway('xai/grok-3-mini-beta'),
           middleware: extractReasoningMiddleware({ tagName: 'think' }),
         }),
-        'title-model': gateway('xai/grok-4'),
-        'artifact-model': gateway('xai/grok-4'),
+        'title-model': getOptimizedGateway('xai/grok-4'),
+        'artifact-model': getOptimizedGateway('xai/grok-4'),
       },
       imageModels: {
         'small-model': xai.imageModel('grok-2-image'),

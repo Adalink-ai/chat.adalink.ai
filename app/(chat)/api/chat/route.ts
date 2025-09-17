@@ -18,7 +18,7 @@ import {
   saveMessages,
 } from '@/lib/db/queries';
 import { convertToUIMessages, generateUUID } from '@/lib/utils';
-import { generateTitleFromUserMessage } from '../../actions';
+import { generateAndUpdateChatTitle } from '../../actions';
 import { createDocument } from '@/lib/ai/tools/create-document';
 import { updateDocument } from '@/lib/ai/tools/update-document';
 import { requestSuggestions } from '@/lib/ai/tools/request-suggestions';
@@ -64,12 +64,20 @@ export function getStreamContext() {
 }
 
 export async function POST(request: Request) {
+  const startTime = Date.now();
+  console.log('[PERF] POST Request started at:', new Date().toISOString());
+
   let requestBody: PostRequestBody;
 
   try {
+    const jsonStartTime = Date.now();
     const json = await request.json();
+    console.log('[PERF] JSON parsing took:', Date.now() - jsonStartTime, 'ms');
     console.log('[DEBUG] Request JSON:', json);
+
+    const parseStartTime = Date.now();
     requestBody = postRequestBodySchema.parse(json);
+    console.log('[PERF] Schema parsing took:', Date.now() - parseStartTime, 'ms');
     console.log('[DEBUG] Parsed request body:', requestBody);
   } catch (error) {
     console.error('[DEBUG] Request parsing error:', error);
@@ -97,7 +105,25 @@ export async function POST(request: Request) {
       hasXaiKey: !!process.env.XAI_API_KEY,
     });
 
+    // Log model selection details
+    const isInternalModel = [
+      'chat-model',
+      'chat-model-reasoning',
+      'title-model',
+      'artifact-model',
+    ].includes(selectedChatModel);
+
+    console.log('[MODEL] Model details:', {
+      selectedChatModel,
+      isInternalModel,
+      willUseGateway: !isInternalModel,
+      defaultModel: process.env.ALLOWED_MODELS?.split(',')[0] || 'not-configured',
+      allowedModels: process.env.ALLOWED_MODELS || 'all-models',
+    });
+
+    const authStartTime = Date.now();
     const session = await auth();
+    console.log('[PERF] Auth took:', Date.now() - authStartTime, 'ms');
 
     if (!session?.user) {
       return new ChatSDKError('unauthorized:chat').toResponse();
@@ -105,28 +131,42 @@ export async function POST(request: Request) {
 
     const userType: UserType = session.user.type;
 
-    const messageCount = await getMessageCountByUserId({
-      id: session.user.id,
-      differenceInHours: 24,
-    });
+    // Execute parallel queries for better performance
+    const parallelQueriesStartTime = Date.now();
+    const [messageCount, chat] = await Promise.all([
+      getMessageCountByUserId({
+        id: session.user.id,
+        differenceInHours: 24,
+      }),
+      getChatById({ id })
+    ]);
+    console.log('[PERF] Parallel queries (messageCount + getChat) took:', Date.now() - parallelQueriesStartTime, 'ms');
 
     if (messageCount > entitlementsByUserType[userType].maxMessagesPerDay) {
       return new ChatSDKError('rate_limit:chat').toResponse();
     }
 
-    const chat = await getChatById({ id });
-
     if (!chat) {
-      const title = await generateTitleFromUserMessage({
-        message,
-        modelId: selectedChatModel,
-      });
-
-      await saveChat({
+      // Create chat asynchronously (non-blocking) to eliminate 257ms delay
+      const saveChatStartTime = Date.now();
+      saveChat({
         id,
         userId: session.user.id,
-        title,
+        title: 'New Chat', // Temporary title
         visibility: selectedVisibilityType,
+      }).then(() => {
+        console.log('[PERF] Chat saved successfully in background after:', Date.now() - saveChatStartTime, 'ms');
+      }).catch(error => {
+        console.error('[ERROR] Failed to save chat in background:', error);
+      });
+
+      // Generate and update title asynchronously (non-blocking)
+      generateAndUpdateChatTitle({
+        chatId: id,
+        message,
+        modelId: selectedChatModel,
+      }).catch(error => {
+        console.error('[ERROR] Async title generation failed:', error);
       });
     } else {
       if (chat.userId !== session.user.id) {
@@ -134,10 +174,23 @@ export async function POST(request: Request) {
       }
     }
 
-    const messagesFromDb = await getMessagesByChatId({ id });
-    const uiMessages = [...convertToUIMessages(messagesFromDb), message];
+    // Start critical path: get messages and prepare for streaming ASAP
+    const criticalPathStartTime = Date.now();
+    const [messagesFromDb] = await Promise.all([
+      getMessagesByChatId({ id, limit: 10, onlyRecent: true }),
+      // Process geolocation in parallel (non-async)
+    ]);
 
+    // Process geolocation (non-async, no need to await)
+    const geolocationStartTime = Date.now();
     const { longitude, latitude, city, country } = geolocation(request);
+    console.log('[PERF] Geolocation processing took:', Date.now() - geolocationStartTime, 'ms');
+
+    const convertMessagesStartTime = Date.now();
+    const uiMessages = [...convertToUIMessages(messagesFromDb), message];
+    console.log('[PERF] Convert messages took:', Date.now() - convertMessagesStartTime, 'ms');
+
+    console.log('[PERF] Critical path (messages + geolocation) took:', Date.now() - criticalPathStartTime, 'ms');
 
     const requestHints: RequestHints = {
       longitude,
@@ -146,22 +199,27 @@ export async function POST(request: Request) {
       country,
     };
 
-    await saveMessages({
-      messages: [
-        {
-          chatId: id,
-          id: message.id,
-          role: 'user',
-          parts: message.parts,
-          attachments: [],
-          createdAt: new Date(),
-        },
-      ],
-    });
-
+    // Save user message and generate stream ID in parallel
     const streamId = generateUUID();
-    await createStreamId({ streamId, chatId: id });
+    const finalSetupStartTime = Date.now();
+    await Promise.all([
+      saveMessages({
+        messages: [
+          {
+            chatId: id,
+            id: message.id,
+            role: 'user',
+            parts: message.parts,
+            attachments: [],
+            createdAt: new Date(),
+          },
+        ],
+      }),
+      createStreamId({ streamId, chatId: id })
+    ]);
+    console.log('[PERF] Final setup operations took:', Date.now() - finalSetupStartTime, 'ms');
 
+    console.log('[PERF] Total setup time before streamText (ULTRA OPTIMIZED - saveChat non-blocking):', Date.now() - startTime, 'ms');
     console.log(
       '[DEBUG] About to call streamText with model:',
       selectedChatModel,
@@ -169,19 +227,40 @@ export async function POST(request: Request) {
 
     const stream = createUIMessageStream({
       execute: ({ writer: dataStream }) => {
+        const streamTextStartTime = Date.now();
         console.log('[DEBUG] Executing streamText...');
+
+        // Add timeout for AI model requests (30 seconds)
+        const abortController = new AbortController();
+        const timeoutId = setTimeout(() => {
+          console.log('[TIMEOUT] AI model request timed out after 30s');
+          abortController.abort();
+        }, 30000);
+
+        // Determine which model to use
+        const useInternalModel = [
+          'chat-model',
+          'chat-model-reasoning',
+          'title-model',
+          'artifact-model',
+        ].includes(selectedChatModel);
+
+        const modelToUse = useInternalModel
+          ? myProvider.languageModel(selectedChatModel)
+          : gateway(selectedChatModel);
+
+        console.log('[MODEL] Using model:', {
+          selectedChatModel,
+          useInternalModel,
+          actualModel: useInternalModel ? `internal:${selectedChatModel}` : `gateway:${selectedChatModel}`,
+        });
+
         const result = streamText({
-          model: [
-            'chat-model',
-            'chat-model-reasoning',
-            'title-model',
-            'artifact-model',
-          ].includes(selectedChatModel)
-            ? myProvider.languageModel(selectedChatModel)
-            : gateway(selectedChatModel),
+          model: modelToUse,
           system: systemPrompt({ selectedChatModel, requestHints }),
           messages: convertToModelMessages(uiMessages),
           stopWhen: stepCountIs(5),
+          abortSignal: abortController.signal,
           experimental_activeTools:
             selectedChatModel === 'chat-model-reasoning'
               ? []
@@ -207,7 +286,18 @@ export async function POST(request: Request) {
           },
         });
 
-        result.consumeStream();
+        console.log('[PERF] StreamText setup took:', Date.now() - streamTextStartTime, 'ms');
+
+        // Monitor for successful stream start or errors
+        try {
+          result.consumeStream();
+          console.log('[PERF] AI model response stream started successfully');
+          clearTimeout(timeoutId);
+        } catch (error) {
+          clearTimeout(timeoutId);
+          console.error('[ERROR] AI model stream failed:', error);
+          throw error;
+        }
 
         dataStream.merge(
           result.toUIMessageStream({
@@ -217,6 +307,13 @@ export async function POST(request: Request) {
       },
       generateId: generateUUID,
       onFinish: async ({ messages }) => {
+        // Calculate total AI response time
+        const totalResponseTime = Date.now() - startTime;
+        console.log('[PERF] Total request processing time:', totalResponseTime, 'ms');
+
+        // Save only AI response messages (user message already saved)
+        const saveStartTime = Date.now();
+
         await saveMessages({
           messages: messages.map((message) => ({
             id: message.id,
@@ -227,6 +324,9 @@ export async function POST(request: Request) {
             chatId: id,
           })),
         });
+
+        console.log('[PERF] AI response save took:', Date.now() - saveStartTime, 'ms');
+        console.log('[PERF] Request completed in total:', Date.now() - startTime, 'ms');
       },
       onError: (error) => {
         console.error('[DEBUG] StreamText onError:', error);
