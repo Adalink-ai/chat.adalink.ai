@@ -16,7 +16,7 @@ import { gateway } from '@ai-sdk/gateway';
 // All available providers in the AI Gateway
 export const AVAILABLE_PROVIDERS = [
   'alibaba',
-  'amazon', 
+  'amazon',
   'anthropic',
   'cohere',
   'deepseek',
@@ -30,10 +30,10 @@ export const AVAILABLE_PROVIDERS = [
   'perplexity',
   'vercel',
   'xai',
-  'zai'
+  'zai',
 ] as const;
 
-export type ProviderName = typeof AVAILABLE_PROVIDERS[number];
+export type ProviderName = (typeof AVAILABLE_PROVIDERS)[number];
 
 // All available models in the AI Gateway
 export const AVAILABLE_MODELS = [
@@ -109,10 +109,9 @@ export const AVAILABLE_MODELS = [
   'zai/glm-4.5',
   'zai/glm-4.5-air',
   'zai/glm-4.5v',
-  
 ] as const;
 
-export type ModelName = typeof AVAILABLE_MODELS[number];
+export type ModelName = (typeof AVAILABLE_MODELS)[number];
 
 // Get allowed providers from environment variable with validation
 export const getAllowedProviders = (): string[] => {
@@ -120,32 +119,38 @@ export const getAllowedProviders = (): string[] => {
   if (!allowedProvidersEnv || allowedProvidersEnv.trim() === '') {
     return []; // Empty array means all providers are allowed
   }
-  
+
   const configuredProviders = allowedProvidersEnv
     .split(',')
-    .map(provider => provider.trim().toLowerCase())
-    .filter(provider => provider !== '');
-  
+    .map((provider) => provider.trim().toLowerCase())
+    .filter((provider) => provider !== '');
+
   // Validate that all configured providers are available
-  const validProviders = configuredProviders.filter(provider => 
-    AVAILABLE_PROVIDERS.includes(provider as ProviderName)
+  const validProviders = configuredProviders.filter((provider) =>
+    AVAILABLE_PROVIDERS.includes(provider as ProviderName),
   );
-  
+
   // Log warning for invalid providers
-  const invalidProviders = configuredProviders.filter(provider => 
-    !AVAILABLE_PROVIDERS.includes(provider as ProviderName)
+  const invalidProviders = configuredProviders.filter(
+    (provider) => !AVAILABLE_PROVIDERS.includes(provider as ProviderName),
   );
-  
+
   if (invalidProviders.length > 0) {
-    console.warn(`[AI Gateway] Invalid providers in ALLOWED_PROVIDERS: ${invalidProviders.join(', ')}`);
-    console.warn(`[AI Gateway] Available providers: ${AVAILABLE_PROVIDERS.join(', ')}`);
+    console.warn(
+      `[AI Gateway] Invalid providers in ALLOWED_PROVIDERS: ${invalidProviders.join(', ')}`,
+    );
+    console.warn(
+      `[AI Gateway] Available providers: ${AVAILABLE_PROVIDERS.join(', ')}`,
+    );
   }
-  
+
   return validProviders;
 };
 
 // Helper function to check if a provider is available
-export const isProviderAvailable = (provider: string): provider is ProviderName => {
+export const isProviderAvailable = (
+  provider: string,
+): provider is ProviderName => {
   return AVAILABLE_PROVIDERS.includes(provider.toLowerCase() as ProviderName);
 };
 
@@ -155,27 +160,29 @@ export const getAllowedModels = (): string[] => {
   if (!allowedModelsEnv || allowedModelsEnv.trim() === '') {
     return []; // Empty array means all models are allowed
   }
-  
+
   const configuredModels = allowedModelsEnv
     .split(',')
-    .map(model => model.trim().toLowerCase())
-    .filter(model => model !== '');
-  
+    .map((model) => model.trim().toLowerCase())
+    .filter((model) => model !== '');
+
   // Validate that all configured models are available
-  const validModels = configuredModels.filter(model => 
-    AVAILABLE_MODELS.includes(model as ModelName)
+  const validModels = configuredModels.filter((model) =>
+    AVAILABLE_MODELS.includes(model as ModelName),
   );
-  
+
   // Log warning for invalid models
-  const invalidModels = configuredModels.filter(model => 
-    !AVAILABLE_MODELS.includes(model as ModelName)
+  const invalidModels = configuredModels.filter(
+    (model) => !AVAILABLE_MODELS.includes(model as ModelName),
   );
-  
+
   if (invalidModels.length > 0) {
-    console.warn(`[AI Gateway] Invalid models in ALLOWED_MODELS: ${invalidModels.join(', ')}`);
+    console.warn(
+      `[AI Gateway] Invalid models in ALLOWED_MODELS: ${invalidModels.join(', ')}`,
+    );
     console.warn(`[AI Gateway] See AVAILABLE_MODELS constant for valid models`);
   }
-  
+
   return validModels;
 };
 
@@ -195,13 +202,13 @@ export const myProvider = isTestEnvironment
     })
   : customProvider({
       languageModels: {
-        'chat-model': gateway('grok-2-vision-1212'),
+        'chat-model': gateway('xai/grok-4'),
         'chat-model-reasoning': wrapLanguageModel({
-          model: gateway('grok-3-mini-beta'),
+          model: gateway('xai/grok-3-mini-beta'),
           middleware: extractReasoningMiddleware({ tagName: 'think' }),
         }),
-        'title-model': gateway('grok-2-1212'),
-        'artifact-model': gateway('grok-2-1212'),
+        'title-model': gateway('xai/grok-4'),
+        'artifact-model': gateway('xai/grok-4'),
       },
       imageModels: {
         'small-model': xai.imageModel('grok-2-image'),

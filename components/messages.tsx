@@ -1,4 +1,5 @@
-import { PreviewMessage, ThinkingMessage } from './message';
+import { MessageBubble } from './message-bubble';
+import { TypingIndicator } from './typing-indicator';
 import { Greeting } from './greeting';
 import { memo } from 'react';
 import type { Vote } from '@/lib/db/schema';
@@ -18,23 +19,15 @@ interface MessagesProps {
   regenerate: UseChatHelpers<ChatMessage>['regenerate'];
   isReadonly: boolean;
   isArtifactVisible: boolean;
+  session?: any;
 }
 
-function PureMessages({
-  chatId,
-  status,
-  votes,
-  messages,
-  setMessages,
-  regenerate,
-  isReadonly,
-}: MessagesProps) {
+function PureMessages({ chatId, status, messages, session }: MessagesProps) {
   const {
     containerRef: messagesContainerRef,
     endRef: messagesEndRef,
     onViewportEnter,
     onViewportLeave,
-    hasSentMessage,
   } = useMessages({
     chatId,
     status,
@@ -43,42 +36,38 @@ function PureMessages({
   useDataStream();
 
   return (
-    <div
-      ref={messagesContainerRef}
-      className="flex flex-col min-w-0 gap-6 flex-1 overflow-y-scroll pt-4 relative"
-    >
-      {messages.length === 0 && <Greeting />}
+    <div className="flex-1 relative">
+      <div
+        ref={messagesContainerRef}
+        className="absolute inset-0 overflow-y-auto p-6"
+      >
+        <div className="max-w-4xl mx-auto">
+          {messages.length === 0 && <Greeting session={session} />}
 
-      {messages.map((message, index) => (
-        <PreviewMessage
-          key={message.id}
-          chatId={chatId}
-          message={message}
-          isLoading={status === 'streaming' && messages.length - 1 === index}
-          vote={
-            votes
-              ? votes.find((vote) => vote.messageId === message.id)
-              : undefined
-          }
-          setMessages={setMessages}
-          regenerate={regenerate}
-          isReadonly={isReadonly}
-          requiresScrollPadding={
-            hasSentMessage && index === messages.length - 1
-          }
-        />
-      ))}
+          {messages.map((message) => (
+            <MessageBubble
+              key={message.id}
+              message={message}
+              session={session}
+            />
+          ))}
 
-      {status === 'submitted' &&
-        messages.length > 0 &&
-        messages[messages.length - 1].role === 'user' && <ThinkingMessage />}
+          <TypingIndicator
+            isVisible={
+              status === 'submitted' &&
+              messages.length > 0 &&
+              messages[messages.length - 1].role === 'user'
+            }
+          />
 
-      <motion.div
-        ref={messagesEndRef}
-        className="shrink-0 min-w-[24px] min-h-[24px]"
-        onViewportLeave={onViewportLeave}
-        onViewportEnter={onViewportEnter}
-      />
+          <motion.div
+            ref={messagesEndRef}
+            className="shrink-0 min-w-[24px] min-h-[24px]"
+            onViewportLeave={onViewportLeave}
+            onViewportEnter={onViewportEnter}
+          />
+        </div>
+      </div>
     </div>
   );
 }

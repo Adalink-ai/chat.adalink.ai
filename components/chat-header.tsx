@@ -1,64 +1,42 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
-import { useWindowSize } from 'usehooks-ts';
-
 import { ModelSelector } from '@/components/model-selector';
-import { SidebarToggle } from '@/components/sidebar-toggle';
-import { Button } from '@/components/ui/button';
-import { PlusIcon } from './icons';
-import { useSidebar } from './ui/sidebar';
+import { MessageIcon } from './icons';
 import { memo } from 'react';
-import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
-import type { Session } from 'next-auth';
 
 function PureChatHeader({
   selectedModelId,
   isReadonly,
-  session,
+  conversationTitle,
 }: {
   selectedModelId: string;
   isReadonly: boolean;
-  session: Session;
+  conversationTitle?: string;
 }) {
-  const router = useRouter();
-  const { open } = useSidebar();
-
-  const { width: windowWidth } = useWindowSize();
-
   return (
-    <header className="flex sticky top-0 bg-background py-1.5 items-center px-2 md:px-2 gap-2">
-      <SidebarToggle />
+    <div className="border-b border-border px-6 py-4 bg-background">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div
+            className="size-8 rounded-lg flex items-center justify-center bg-purple-100"
+            style={{
+              backgroundColor: 'rgba(184, 0, 201, 0.1)',
+              color: '#B800C9',
+            }}
+          >
+            <MessageIcon size={16} />
+          </div>
+          <div>
+            <h2 className="font-semibold text-foreground">
+              {conversationTitle || 'Nova Conversa'}
+            </h2>
+            <p className="text-sm text-purple-custom-500">Online agora</p>
+          </div>
+        </div>
 
-      {(!open || windowWidth < 768) && (
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="outline"
-              className="order-2 md:order-1 md:px-2 px-2 md:h-fit ml-auto md:ml-0"
-              onClick={() => {
-                router.push('/');
-                router.refresh();
-              }}
-            >
-              <PlusIcon />
-              <span className="md:sr-only">New Chat</span>
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>New Chat</TooltipContent>
-        </Tooltip>
-      )}
-
-      {!isReadonly && (
-        <ModelSelector
-          session={session}
-          selectedModelId={selectedModelId}
-          className="order-1 md:order-2"
-        />
-      )}
-
-
-    </header>
+        {!isReadonly && <ModelSelector selectedModelId={selectedModelId} />}
+      </div>
+    </div>
   );
 }
 
