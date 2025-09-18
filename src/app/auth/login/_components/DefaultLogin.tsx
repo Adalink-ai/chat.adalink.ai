@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 
 import { AnimatePresence, motion } from 'framer-motion'
+import Image from 'next/image'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { signIn, signOut, getSession } from 'next-auth/react'
 import { toast } from 'sonner'
@@ -81,8 +82,18 @@ export function DefaultLogin() {
 
   return (
     <div className="w-screen h-screen grid grid-cols-1 xl:grid-cols-2 overflow-auto">
-      <aside className="hidden xl:flex w-full bg-gradient-to-br from-primary-800 to-primary-900 items-end justify-between p-10 text-xs text-white">
-        <LoginFooter />
+      <aside className="hidden xl:flex w-full items-end justify-between p-10 text-xs text-white relative overflow-hidden">
+        <Image
+          src="/assets/bg-login.jpg"
+          alt="Login background"
+          fill
+          className="object-cover"
+          priority
+        />
+        <div className="absolute inset-0 bg-black/40"></div>
+        <div className="relative z-10">
+          <LoginFooter />
+        </div>
       </aside>
 
       <aside className="flex w-full justify-center bg-gray-50 text-gray-900">
