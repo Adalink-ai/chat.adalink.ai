@@ -39,8 +39,13 @@ export const {
   ...authConfig,
   providers: [
     Credentials({
-      credentials: {},
-      async authorize({ email, password }: any) {
+      credentials: {
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" }
+      },
+      async authorize(credentials) {
+        const email = credentials.email as string;
+        const password = credentials.password as string;
         const users = await getUser(email);
 
         if (users.length === 0) {
