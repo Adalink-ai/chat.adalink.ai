@@ -102,8 +102,19 @@ function DefaultLoginInner() {
 
   return (
     <div className="w-screen h-screen grid grid-cols-1 xl:grid-cols-2 overflow-auto">
-      <aside className='hidden xl:flex w-full bg-gradient-to-br from-primary-800 to-primary-600 items-end justify-between p-10 text-xs text-white'>
-        <LoginFooter />
+      <aside 
+        className='hidden xl:flex w-full items-end justify-between p-10 text-xs text-white relative overflow-hidden'
+        style={{
+          backgroundImage: 'url(/images/bg-login.jpg)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat'
+        }}
+      >
+        <div className="absolute inset-0 bg-gradient-to-br from-primary-800/30 to-primary-600/30" />
+        <div className="relative z-10 w-full">
+          <LoginFooter />
+        </div>
       </aside>
 
       <aside className="flex w-full justify-center bg-primary-900 text-white">
