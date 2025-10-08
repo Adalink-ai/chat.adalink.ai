@@ -85,6 +85,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       async session({ session, token }) {
         const typedToken = token as ExtendedToken
   
+        
         session.user = {
           ...typedToken.user,
           access_token: typedToken.access_token,
