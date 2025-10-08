@@ -59,7 +59,8 @@ export const config = {
      * - favicon.ico, sitemap.xml, robots.txt (metadata files)
      * - /api/auth (authentication endpoints)
      * - /ping (health check)
+     * - /images (public images)
      */
-    '/((?!_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt|api/auth|ping).*)',
+    '/((?!_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt|api/auth|ping|images).*)',
   ],
 };
