@@ -1,27 +1,17 @@
-'use client'
-
-interface LoginFooterProps {
-  isMobile?: boolean
-}
-
-export function LoginFooter({ isMobile }: LoginFooterProps) {
-  if (isMobile) {
-    return (
-      <div className="flex xl:hidden w-full justify-center items-center text-xs text-gray-500 mt-8">
-        <p>© 2024 Adalink. Todos os direitos reservados.</p>
-      </div>
-    )
-  }
-
+export function LoginFooter({ isMobile = false }: { isMobile?: boolean }) {
   return (
-    <div className="flex w-full justify-between items-center">
-      <div className="flex flex-col gap-1">
-        <h2 className="text-lg font-semibold">Adalink</h2>
-        <p className="text-white/80">Plataforma de IA conversacional</p>
+    <div className="flex flex-col gap-2 text-xs text-primary-foreground/60">
+      <div className="flex items-center gap-2">
+        <span>© 2024 AdaLink</span>
+        {isMobile && <span>•</span>}
       </div>
-      <div className="text-right">
-        <p>© 2024 Adalink. Todos os direitos reservados.</p>
-      </div>
+      {isMobile && (
+        <div className="flex items-center gap-2">
+          <span>Termos de uso</span>
+          <span>•</span>
+          <span>Privacidade</span>
+        </div>
+      )}
     </div>
   )
 }

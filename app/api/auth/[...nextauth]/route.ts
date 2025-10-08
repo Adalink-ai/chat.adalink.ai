@@ -1,3 +1,3 @@
-import { GET, POST } from '@/app/(auth)/auth'
+import { handlers } from '@/app/(auth)/auth'
 
-export { GET, POST }
+export const { GET, POST } = handlers

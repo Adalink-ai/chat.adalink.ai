@@ -28,14 +28,14 @@ export function PasswordStep({
   return (
     <div className="flex flex-col w-full gap-4">
       <div className="flex flex-col w-full gap-2">
-        <Label className="text-gray-700 text-start">
+        <Label className="text-primary-foreground text-start">
           Senha
         </Label>
         <div className="relative">
           <Input
             required
             autoComplete="off"
-            className="placeholder:text-gray-400 pr-10"
+            className="placeholder:text-primary-foreground/60 pr-10"
             placeholder="Digite sua senha"
             type={showPassword ? 'text' : 'password'}
             value={password}
@@ -49,9 +49,9 @@ export function PasswordStep({
             onClick={() => setShowPassword((prev) => !prev)}
           >
             {showPassword ? (
-              <EyeOff className="h-5 w-5 text-gray-500" />
+              <EyeOff className="h-5 w-5 text-primary-foreground/60" />
             ) : (
-              <Eye className="h-5 w-5 text-gray-500" />
+              <Eye className="h-5 w-5 text-primary-foreground/60" />
             )}
           </Button>
         </div>
@@ -59,7 +59,7 @@ export function PasswordStep({
         <Button
           asChild
           variant="link"
-          className="text-gray-500 text-sm self-end hover:underline"
+          className="text-dark-300 text-sm self-end hover:underline"
         >
           <Link href="/auth/forgot-password">Esqueceu a senha?</Link>
         </Button>
@@ -68,19 +68,19 @@ export function PasswordStep({
         variant="default"
         type="submit"
         size="lg"
-        className="rounded-full bg-primary-600 cursor-pointer hover:bg-primary-700"
+        className="rounded-full bg-primary-500 cursor-pointer hover:bg-primary-500/90"
         disabled={isLoading || !password}
       >
         {isLoading ? (
           <Loader2 className="animate-spin w-5 h-5 mr-2" />
         ) : (
-          'Continuar'
+          'Entrar'
         )}
       </Button>
       <Button
         variant={'link'}
         type="button"
-        className="text-gray-500 font-normal text-sm w-fit self-start -mb-2 -mt-2 cursor-pointer"
+        className="text-primary-foreground/60 font-normal text-sm w-fit self-start -mb-2 -mt-2 cursor-pointer"
         onClick={onBack}
       >
         <ArrowLeft /> Voltar para email

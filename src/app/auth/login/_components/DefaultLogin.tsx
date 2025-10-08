@@ -1,34 +1,36 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 
 import { AnimatePresence, motion } from 'framer-motion'
-import Image from 'next/image'
-import { useRouter, useSearchParams } from 'next/navigation'
 import { signIn, signOut, getSession } from 'next-auth/react'
+import { useSearchParams, useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 
-import { EmailStep } from '../ui/EmailStep'
+import type { ExtendedUser } from '@/app/(auth)/auth.config'
+import { SocialLoginBlock } from '../ui/SocialLoginBlock'
 import { LoginFooter } from '../ui/LoginFooter'
 import { PasswordStep } from '../ui/PasswordStep'
-import { SocialLoginBlock } from '../ui/SocialLoginBlock'
+import { EmailStep } from '../ui/EmailStep'
 
 async function getSessionSafely() {
   try {
     return await getSession()
   } catch {
     toast.error('Erro ao recuperar a sessão')
+
     return null
   }
 }
 
-export function DefaultLogin() {
+function DefaultLoginInner() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [isLoggingIn, setIsLoggingIn] = useState(false)
   const [step, setStep] = useState<'email' | 'password'>('email')
-  const error = useSearchParams().get('error')
+  const searchParams = useSearchParams()
   const router = useRouter()
+  const error = searchParams?.get('error')
 
   const handlePasswordLogin = async () => {
     if (isLoggingIn) return
@@ -42,10 +44,28 @@ export function DefaultLogin() {
 
     if (result?.ok) {
       const session = await getSessionSafely()
-      const user = session?.user
+      const user = session?.user as ExtendedUser
+
+      const hasOrg = !!user?.organizationId && user.organizationId.trim() !== ''
+      const hasInvites = Array.isArray(user?.invites) && user.invites.length > 0
+
+      if (!hasOrg && hasInvites) {
+        window.location.href = '/auth/invite'
+
+        return
+      }
+
+      if (!hasOrg && !hasInvites) {
+        window.location.href = '/auth/signup/organization'
+
+        return
+      }
+
+      // Redirecionamento para página principal
+      const redirectPath = '/'
 
       toast.success('Login realizado com sucesso')
-      router.push('/')
+      router.push(redirectPath)
     } else {
       toast.error('Usuário ou senha incorretos')
     }
@@ -64,11 +84,11 @@ export function DefaultLogin() {
 
   useEffect(() => {
     if (error === 'UserNotAuthorized') {
-      toast('Usuário não autorizado')
+      toast('Usuário não registrado')
     }
 
     if (error === 'CredentialsSignin') {
-      toast('Erro no login')
+      toast('Usuário ou senha incorretos')
     }
   }, [error])
 
@@ -82,25 +102,15 @@ export function DefaultLogin() {
 
   return (
     <div className="w-screen h-screen grid grid-cols-1 xl:grid-cols-2 overflow-auto">
-      <aside className="hidden xl:flex w-full items-end justify-between p-10 text-xs text-white relative overflow-hidden">
-        <Image
-          src="/assets/bg-login.jpg"
-          alt="Login background"
-          fill
-          className="object-cover"
-          priority
-        />
-        <div className="absolute inset-0 bg-black/40"></div>
-        <div className="relative z-10">
-          <LoginFooter />
-        </div>
+      <aside className='hidden xl:flex w-full bg-gradient-to-br from-primary-800 to-primary-600 items-end justify-between p-10 text-xs text-white'>
+        <LoginFooter />
       </aside>
 
-      <aside className="flex w-full justify-center bg-gray-50 text-gray-900">
-        <div className="flex flex-col items-center justify-center w-full p-10 gap-10 max-w-lg text-center">
+      <aside className="flex w-full justify-center bg-primary-900 text-white">
+        <div className="flex flex-col items-center justify-center w-full p-10 gap-10 max-w-lg text-center text-primary-foreground">
           <div className="flex flex-col gap-4">
-            <h1 className="text-3xl font-semibold text-gray-900">Faça login</h1>
-            <p className="text-gray-600">Acesse sua conta</p>
+            <h1 className="text-3xl font-semibold">Bem-vindo de volta</h1>
+            <p className="text-primary-foreground/60">Faça login na sua conta</p>
           </div>
 
           <form
@@ -154,5 +164,13 @@ export function DefaultLogin() {
         </div>
       </aside>
     </div>
+  )
+}
+
+export function DefaultLogin() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <DefaultLoginInner />
+    </Suspense>
   )
 }

@@ -22,13 +22,13 @@ export function EmailStep({
   return (
     <div className="flex flex-col w-full gap-4">
       <div className="flex flex-col w-full gap-2">
-        <Label className="text-gray-700 text-start">
+        <Label className="text-primary-foreground text-start">
           Email
         </Label>
         <Input
           required
           autoComplete="off"
-          className="placeholder:text-gray-400"
+          className="placeholder:text-primary-foreground/60"
           placeholder="Digite seu email"
           value={email}
           onChange={(e) => onChange(e.target.value)}
@@ -39,7 +39,7 @@ export function EmailStep({
         size="lg"
         type="button"
         onClick={() => onContinue?.()}
-        className="rounded-full bg-primary-600 cursor-pointer hover:bg-primary-700"
+        className="rounded-full bg-primary-500 cursor-pointer hover:bg-primary-500/90"
         disabled={disabled || !email}
       >
         {disabled ? (
