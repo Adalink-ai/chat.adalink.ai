@@ -2,216 +2,116 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-    --foreground-rgb: 0, 0, 0;
-    --background-start-rgb: 214, 219, 220;
-    --background-end-rgb: 255, 255, 255;
-}
-
-@media (prefers-color-scheme: dark) {
-    :root {
-        --foreground-rgb: 255, 255, 255;
-        --background-start-rgb: 0, 0, 0;
-        --background-end-rgb: 0, 0, 0;
-    }
-}
-
-@layer utilities {
-    .text-balance {
-        text-wrap: balance;
-    }
-}
-
-@layer base {
-    :root {
-        --background: 0 0% 100%;
-        --foreground: 240 10% 3.9%;
-        --card: 0 0% 100%;
-        --card-foreground: 240 10% 3.9%;
-        --popover: 0 0% 100%;
-        --popover-foreground: 240 10% 3.9%;
-        --primary: 240 5.9% 10%;
-        --primary-foreground: 0 0% 98%;
-        --secondary: 240 4.8% 95.9%;
-        --secondary-foreground: 240 5.9% 10%;
-        --muted: 240 4.8% 95.9%;
-        --muted-foreground: 240 3.8% 46.1%;
-        --accent: 240 4.8% 95.9%;
-        --accent-foreground: 240 5.9% 10%;
-        --destructive: 0 84.2% 60.2%;
-        --destructive-foreground: 0 0% 98%;
-        --border: 240 5.9% 90%;
-        --input: 240 5.9% 90%;
-        --ring: 240 10% 3.9%;
-        --chart-1: 12 76% 61%;
-        --chart-2: 173 58% 39%;
-        --chart-3: 197 37% 24%;
-        --chart-4: 43 74% 66%;
-        --chart-5: 27 87% 67%;
-        --radius: 0.5rem;
-        --sidebar-background: 0 0% 98%;
-        --sidebar-foreground: 240 5.3% 26.1%;
-        --sidebar-primary: 240 5.9% 10%;
-        --sidebar-primary-foreground: 0 0% 98%;
-        --sidebar-accent: 240 4.8% 95.9%;
-        --sidebar-accent-foreground: 240 5.9% 10%;
-        --sidebar-border: 220 13% 91%;
-        --sidebar-ring: 217.2 91.2% 59.8%;
-    }
-    .dark {
-        --background: 240 10% 3.9%;
-        --foreground: 0 0% 98%;
-        --card: 240 10% 3.9%;
-        --card-foreground: 0 0% 98%;
-        --popover: 240 10% 3.9%;
-        --popover-foreground: 0 0% 98%;
-        --primary: 0 0% 98%;
-        --primary-foreground: 240 5.9% 10%;
-        --secondary: 240 3.7% 15.9%;
-        --secondary-foreground: 0 0% 98%;
-        --muted: 240 3.7% 15.9%;
-        --muted-foreground: 240 5% 64.9%;
-        --accent: 240 3.7% 15.9%;
-        --accent-foreground: 0 0% 98%;
-        --destructive: 0 62.8% 30.6%;
-        --destructive-foreground: 0 0% 98%;
-        --border: 240 3.7% 15.9%;
-        --input: 240 3.7% 15.9%;
-        --ring: 240 4.9% 83.9%;
-        --chart-1: 220 70% 50%;
-        --chart-2: 160 60% 45%;
-        --chart-3: 30 80% 55%;
-        --chart-4: 280 65% 60%;
-        --chart-5: 340 75% 55%;
-        --sidebar-background: 240 5.9% 10%;
-        --sidebar-foreground: 240 4.8% 95.9%;
-        --sidebar-primary: 224.3 76.3% 48%;
-        --sidebar-primary-foreground: 0 0% 100%;
-        --sidebar-accent: 240 3.7% 15.9%;
-        --sidebar-accent-foreground: 240 4.8% 95.9%;
-        --sidebar-border: 240 3.7% 15.9%;
-        --sidebar-ring: 217.2 91.2% 59.8%;
-    }
-}
-
-@layer base {
-    * {
-        @apply border-border;
-    }
-
-    body {
-        @apply bg-background text-foreground;
-    }
-}
-
-.skeleton {
-    * {
-        pointer-events: none !important;
-    }
-
-    *[class^="text-"] {
-        color: transparent;
-        @apply rounded-md bg-foreground/20 select-none animate-pulse;
-    }
-
-    .skeleton-bg {
-        @apply bg-foreground/10;
-    }
-
-    .skeleton-div {
-        @apply bg-foreground/20 animate-pulse;
-    }
-}
-
-.ProseMirror {
-    outline: none;
-}
-
-.cm-editor,
-.cm-gutters {
-    @apply bg-background dark:bg-zinc-800 outline-none selection:bg-zinc-900 !important;
-}
-
-.ͼo.cm-focused > .cm-scroller > .cm-selectionLayer .cm-selectionBackground,
-.ͼo.cm-selectionBackground,
-.ͼo.cm-content::selection {
-    @apply bg-zinc-200 dark:bg-zinc-900 !important;
-}
-
-.cm-activeLine,
-.cm-activeLineGutter {
-    @apply bg-transparent !important;
-}
-
-.cm-activeLine {
-    @apply rounded-r-sm !important;
-}
-
-.cm-lineNumbers {
-    @apply min-w-7;
-}
-
-.cm-foldGutter {
-    @apply min-w-3;
-}
-
-.cm-lineNumbers .cm-activeLineGutter {
-    @apply rounded-l-sm !important;
-}
-
-.suggestion-highlight {
-    @apply bg-blue-200 hover:bg-blue-300 dark:hover:bg-blue-400/50 dark:text-blue-50 dark:bg-blue-500/40;
-}
-
-/* Animações para o AssistantLoadingCard */
+/* Animações personalizadas */
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes logoSpin {
-    0% { transform: rotate(0deg) scale(1); }
-    25% { transform: rotate(90deg) scale(1.1); }
-    50% { transform: rotate(180deg) scale(1); }
-    75% { transform: rotate(270deg) scale(1.1); }
-    100% { transform: rotate(360deg) scale(1); }
-}
-
-@keyframes blink {
-    0%, 50% { opacity: 1; }
-    51%, 100% { opacity: 0; }
-}
-
-@keyframes colorChange {
-    0%, 100% { stroke: #B800C9; }
-    50% { stroke: #9300A1; }
-}
-
-@keyframes dashAnimation {
-    0% { stroke-dasharray: 0 125; }
-    50% { stroke-dasharray: 90 125; }
-    100% { stroke-dasharray: 0 125; }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .animate-fadeIn {
-    animation: fadeIn 0.5s ease-out;
+  animation: fadeIn 0.3s ease-in-out forwards;
 }
 
-.animate-logoSpin {
-    animation: logoSpin 2.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) infinite;
-    transform-origin: center center;
+/* Chatbot V2 Styles */
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.animate-blink {
-    animation: blink 0.8s step-start infinite;
+/* Rotating border effect - Now using Framer Motion */
+
+@keyframes messageSlide {
+  from {
+    opacity: 0;
+    transform: translateX(var(--slide-direction, 20px));
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
-.animate-colorChange {
-    animation: colorChange 2s ease-in-out infinite;
+/* Custom scrollbar for chat */
+.chat-scrollbar::-webkit-scrollbar {
+  width: 6px;
 }
 
-.animate-dashAnimation {
-    animation: dashAnimation 1s linear infinite;
+.chat-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.chat-scrollbar::-webkit-scrollbar-thumb {
+  background: #e5e7eb;
+  border-radius: 3px;
+}
+
+.chat-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #d1d5db;
+}
+
+@keyframes colorChange {
+  0% {
+    stroke: #d8b4fe;
+  } /* Roxo bem claro */
+  20% {
+    stroke: #c084fc;
+  } /* Roxo claro */
+  40% {
+    stroke: #a855f7;
+  } /* Roxo médio */
+  60% {
+    stroke: #9333ea;
+  } /* Roxo médio-escuro */
+  80% {
+    stroke: #7e22ce;
+  } /* Roxo escuro */
+  100% {
+    stroke: #d8b4fe;
+  } /* Volta para o roxo bem claro */
+}
+
+@keyframes dashAnimation {
+  0% {
+    stroke-dasharray: 125;
+    stroke-dashoffset: 0;
+  }
+  100% {
+    stroke-dasharray: 125;
+    stroke-dashoffset: 250;
+  }
+}
+
+@keyframes logoSpin {
+  0% {
+    transform: scale(1) rotate(0deg);
+  }
+  25% {
+    transform: scale(1) rotate(360deg);
+  }
+  35% {
+    transform: scale(0.7) rotate(360deg);
+  }
+  75% {
+    transform: scale(0.7) rotate(360deg);
+  }
+  90% {
+    transform: scale(1) rotate(360deg);
+  }
+  100% {
+    transform: scale(1) rotate(360deg);
+  }
 }
 
 /* Estilo personalizado para scrollbar */
@@ -229,8 +129,630 @@
   border-radius: 10px;
 }
 
+/* Estilos para o Navbar Moderno */
+@keyframes pulseGlow {
+  0%,
+  100% {
+    box-shadow:
+      0 0 10px rgba(168, 85, 247, 0.3),
+      0 0 20px rgba(168, 85, 247, 0.1);
+  }
+  50% {
+    box-shadow:
+      0 0 20px rgba(168, 85, 247, 0.5),
+      0 0 30px rgba(168, 85, 247, 0.2);
+  }
+}
+
+@keyframes gradientShift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.navbar-ai-glow {
+  animation: pulseGlow 2s ease-in-out infinite;
+}
+
+.navbar-gradient-animate {
+  background-size: 200% 200%;
+  animation: gradientShift 3s ease infinite;
+}
+
+/* Animação de digitação para indicador de IA */
+@keyframes typing {
+  0%,
+  60%,
+  100% {
+    opacity: 0.3;
+  }
+  30% {
+    opacity: 1;
+  }
+}
+
+.typing-dot {
+  animation: typing 1.4s infinite;
+}
+
+.typing-dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.typing-dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+/* Efeito de brilho para ícones de IA */
+@keyframes sparkle {
+  0%,
+  100% {
+    opacity: 0.5;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+}
+
+.ai-sparkle {
+  animation: sparkle 2s ease-in-out infinite;
+}
+
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: #a855f7;
+}
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+  --middleground: #ededed;
+  --middleground-light: #f8f7fb;
+  
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-middleground: var(--middleground);
+  --font-inter: var(--font-inter-sans);
+
+  /* Adalink Typography */
+  --text-2xs: 0.5rem;
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-md: 1rem;
+  --text-lg: 1.175rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: 1.875rem;
+  --text-4xl: 2.25rem;
+
+  /* Adalink Palette */
+  --color-black: #000000;
+  --color-white: #ffffff;
+  --color-complementary-050: #e6ecff;
+  --color-complementary-100: #cfd5ff;
+  --color-complementary-200: #afbfff;
+  --color-complementary-300: #8ea5ff;
+  --color-complementary-400: #5e6bff;
+  --color-complementary-500: #0029cc;
+  --color-complementary-600: #0003b3;
+  --color-complementary-700: #050093;
+  --color-complementary-800: #000675;
+  --color-complementary-900: #001558;
+  --color-dark-050: #ecebec;
+  --color-dark-100: #d9d8d9;
+  --color-dark-200: #c6c5c6;
+  --color-dark-300: #b3b2b3;
+  --color-dark-400: #a19fa1;
+  --color-dark-500: #8e8c8f;
+  --color-dark-600: #7b797c;
+  --color-dark-700: #484649;
+  --color-dark-800: #3f3e40;
+  --color-dark-900: #302e31;
+  --color-gray-dark-050: #c4c4cb;
+  --color-gray-dark-100: #afafbd;
+  --color-gray-dark-200: #9a9aae;
+  --color-gray-dark-300: #8585a0;
+  --color-gray-dark-400: #707092;
+  --color-gray-dark-500: #5a5a84;
+  --color-gray-dark-600: #494972;
+  --color-gray-dark-700: #383860;
+  --color-gray-dark-800: #29294e;
+  --color-gray-dark-900: #1a1a3c;
+  --color-gray-light-050: #f8f7fb;
+  --color-gray-light-100: #efedef;
+  --color-gray-light-200: #e5e3ea;
+  --color-gray-light-300: #dbd8e5;
+  --color-gray-light-400: #d0cde0;
+  --color-gray-light-500: #c4c1d9;
+  --color-gray-light-600: #b6b4cf;
+  --color-gray-light-700: #a7a5c3;
+  --color-gray-light-800: #9593b5;
+  --color-gray-light-900: #807ca2;
+  --color-green-050: #e9f6eb;
+  --color-green-100: #c8e9cc;
+  --color-green-200: #a4dbab;
+  --color-green-300: #80ce8a;
+  --color-green-400: #62c172;
+  --color-green-500: #4caf50;
+  --color-green-600: #449c48;
+  --color-green-700: #3c893f;
+  --color-green-800: #336735;
+  --color-green-900: #214422;
+  --color-primary-050: #f7e6f9;
+  --color-primary-100: #edb3f2;
+  --color-primary-200: #e280ec;
+  --color-primary-300: #d84de5;
+  --color-primary-400: #cd1bdf;
+  --color-primary-500: #b800c9; /* Valor padrão - será sobrescrito dinamicamente via JavaScript */
+  --color-primary-600: #9300a1;
+  --color-primary-700: #6e0079;
+  --color-primary-800: #4a0050;
+  --color-primary-900: #250028;
+  --color-red-050: #ffedeb;
+  --color-red-100: #ffd2ce;
+  --color-red-200: #ffb6b1;
+  --color-red-300: #ff9a94;
+  --color-red-400: #ff8079;
+  --color-red-500: #ff6f61;
+  --color-red-600: #e66158;
+  --color-red-700: #cc534e;
+  --color-red-800: #802f31;
+  --color-red-900: #4d1b1e;
+  --color-yellow-050: #fff9e5;
+  --color-yellow-100: #fff2cc;
+  --color-yellow-200: #ffeaa3;
+  --color-yellow-300: #ffe27a;
+  --color-yellow-400: #ffdb4c;
+  --color-yellow-500: #ffd700;
+  --color-yellow-600: #e6c200;
+  --color-yellow-700: #ccae00;
+  --color-yellow-800: #b39a00;
+  --color-yellow-900: #806e00;
+  
+  /* --color-primary-500 será definida dinamicamente via JavaScript */
+  --color-primary-400: color-mix(in srgb, var(--color-primary-500) 80%, white);
+  --color-primary-600: color-mix(in srgb, var(--color-primary-500) 85%, black);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+/* Override para classes Tailwind que não funcionam */
+.bg-primary-500 {
+  background-color: var(--color-primary-500) !important;
+}
+
+.bg-primary-050 {
+  background-color: color-mix(in srgb, var(--color-primary-500) 5%, white) !important;
+}
+
+.bg-primary-50 {
+  background-color: color-mix(in srgb, var(--color-primary-500) 5%, white) !important;
+}
+
+.bg-primary-100 {
+  background-color: color-mix(in srgb, var(--color-primary-500) 10%, white) !important;
+}
+
+.bg-primary-200 {
+  background-color: color-mix(in srgb, var(--color-primary-500) 20%, white) !important;
+}
+
+.bg-primary-400 {
+  background-color: color-mix(in srgb, var(--color-primary-500) 80%, white) !important;
+}
+
+.bg-primary-600 {
+  background-color: color-mix(in srgb, var(--color-primary-500) 85%, black) !important;
+}
+
+.bg-primary-700 {
+  background-color: color-mix(in srgb, var(--color-primary-500) 70%, black) !important;
+}
+
+.bg-primary-800 {
+  background-color: color-mix(in srgb, var(--color-primary-500) 55%, black) !important;
+}
+
+.bg-primary-900 {
+  background-color: color-mix(in srgb, var(--color-primary-500) 40%, black) !important;
+}
+
+.hover\:bg-primary-050:hover {
+  background-color: color-mix(in srgb, var(--color-primary-500) 5%, white) !important;
+}
+
+.hover\:bg-primary-600:hover {
+  background-color: color-mix(in srgb, var(--color-primary-500) 85%, black) !important;
+}
+
+.hover\:bg-primary-700:hover {
+  background-color: color-mix(in srgb, var(--color-primary-500) 70%, black) !important;
+}
+
+.hover\:bg-primary-800:hover {
+  background-color: color-mix(in srgb, var(--color-primary-500) 55%, black) !important;
+}
+
+.hover\:bg-primary-900:hover {
+  background-color: color-mix(in srgb, var(--color-primary-500) 40%, black) !important;
+}
+
+.text-primary-600 {
+  color: color-mix(in srgb, var(--color-primary-500) 85%, black) !important;
+}
+
+.text-primary-700 {
+  color: color-mix(in srgb, var(--color-primary-500) 70%, black) !important;
+}
+
+.hover\:text-primary-600:hover {
+  color: color-mix(in srgb, var(--color-primary-500) 85%, black) !important;
+}
+
+.group:hover .group-hover\:text-primary-600 {
+  color: color-mix(in srgb, var(--color-primary-500) 85%, black) !important;
+}
+
+.group-hover\:text-primary-700:hover {
+  color: color-mix(in srgb, var(--color-primary-500) 70%, black) !important;
+}
+
+.group:hover .group-hover\:text-primary-700 {
+  color: color-mix(in srgb, var(--color-primary-500) 70%, black) !important;
+}
+
+/* Overrides para text-primary-500 */
+.text-primary-500 {
+  color: var(--color-primary-500) !important;
+}
+
+.hover\:text-primary-500:hover {
+  color: var(--color-primary-500) !important;
+}
+
+.group:hover .group-hover\:text-primary-500 {
+  color: var(--color-primary-500) !important;
+}
+
+/* Classe específica para tabs com cor primária - APENAS o botão da tab */
+.tab-active-primary[data-state="active"] {
+  color: var(--color-primary-500) !important;
+}
+
+/* Evita que a cor se propague para elementos filhos */
+.tab-active-primary[data-state="active"] * {
+  color: initial;
+}
+
+/* Classe específica para hover de tabs com borda primária */
+.tab-hover-primary:hover {
+  border-color: var(--color-primary-500) !important;
+}
+
+/* Classe específica para switches com cor primária dinâmica */
+.switch-primary[data-state="checked"] {
+  background-color: var(--color-primary-500) !important;
+}
+
+/* Classes específicas para focus de inputs com cor primária dinâmica */
+.input-primary:focus {
+  border-color: var(--color-primary-500) !important;
+  box-shadow: 0 0 0 1px var(--color-primary-500) !important;
+}
+
+/* Classes específicas para focus de textareas com cor primária dinâmica */
+.textarea-primary:focus-visible {
+  border-color: var(--color-primary-500) !important;
+  box-shadow: 0 0 0 1px var(--color-primary-500) !important;
+}
+
+/* Classes específicas para focus de selects com cor primária dinâmica */
+.select-primary:focus {
+  border-color: var(--color-primary-500) !important;
+  box-shadow: 0 0 0 1px var(--color-primary-500) !important;
+}
+
+/* Overrides para border primary */
+.border-primary-050 {
+  border-color: color-mix(in srgb, var(--color-primary-500) 5%, white) !important;
+}
+
+.border-primary-50 {
+  border-color: color-mix(in srgb, var(--color-primary-500) 5%, white) !important;
+}
+
+.border-primary-100 {
+  border-color: color-mix(in srgb, var(--color-primary-500) 25%, white) !important;
+}
+
+.border-primary-200 {
+  border-color: color-mix(in srgb, var(--color-primary-500) 20%, white) !important;
+}
+
+.border-primary-400 {
+  border-color: color-mix(in srgb, var(--color-primary-500) 80%, white) !important;
+}
+
+.border-primary-500 {
+  border-color: var(--color-primary-500) !important;
+}
+
+/* Overrides para hover de border e background */
+.hover\:border-primary-400:hover {
+  border-color: color-mix(in srgb, var(--color-primary-500) 80%, white) !important;
+}
+
+.hover\:border-primary-500:hover {
+  border-color: var(--color-primary-500) !important;
+}
+
+.group:hover .group-hover\:bg-primary-100 {
+  background-color: color-mix(in srgb, var(--color-primary-500) 10%, white) !important;
+}
+
+.group:hover .group-hover\:text-primary-600 {
+  color: color-mix(in srgb, var(--color-primary-500) 85%, black) !important;
+}
+
+/* Classes de gradiente dinâmicas para from-primary-* */
+.from-primary-50 {
+  --tw-gradient-from: color-mix(in srgb, var(--color-primary-500) 5%, white) !important;
+  --tw-gradient-to: rgb(255 255 255 / 0) !important;
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+}
+
+.from-primary-100 {
+  --tw-gradient-from: color-mix(in srgb, var(--color-primary-500) 10%, white) !important;
+  --tw-gradient-to: rgb(255 255 255 / 0) !important;
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+}
+
+.to-primary-50 {
+  --tw-gradient-to: color-mix(in srgb, var(--color-primary-500) 5%, white) !important;
+}
+
+.to-primary-100 {
+  --tw-gradient-to: color-mix(in srgb, var(--color-primary-500) 25%, white) !important;
+}
+
+/* Classes de gradiente com opacidade */
+.from-primary-50\/50 {
+  --tw-gradient-from: color-mix(in srgb, var(--color-primary-500) 2.5%, white) !important;
+  --tw-gradient-to: rgb(255 255 255 / 0) !important;
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+}
+
+.from-primary-100\/50 {
+  --tw-gradient-from: color-mix(in srgb, var(--color-primary-500) 12.5%, white) !important;
+  --tw-gradient-to: rgb(255 255 255 / 0) !important;
+  --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+}
+
+.to-primary-100\/50 {
+  --tw-gradient-to: color-mix(in srgb, var(--color-primary-500) 12.5%, white) !important;
+}
+
+/* Classe personalizada para o gradiente do chat header */
+.chat-header-gradient {
+  background: linear-gradient(
+    to right,
+    color-mix(in srgb, var(--color-primary-500) 5%, white) / 0.5,
+    color-mix(in srgb, var(--color-primary-500) 10%, white) / 0.5
+  ) !important;
+}
+
+* {
+  font-family: var(--font-poppins), var(--font-geist), sans-serif !important;
+}
+
+html,
+body {
+  font-family: var(--font-poppins), var(--font-geist), sans-serif;
+  font-size: 16px;
+}
+
+input,
+textarea,
+button,
+select {
+  font-family: var(--font-poppins), var(--font-geist), sans-serif !important;
+}
+
+.react-international-phone-country-selector-button {
+  background-color: transparent !important;
+  padding: 0 !important;
+}
+
+input[type='time']::-webkit-calendar-picker-indicator {
+  opacity: 0;
+  display: none;
+}
+
+/* Scene Generator Custom Animations */
+@keyframes pulse-neon {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(168, 85, 247, 0.5), 0 0 10px rgba(168, 85, 247, 0.3), 0 0 15px rgba(168, 85, 247, 0.1);
+  }
+  50% {
+    box-shadow: 0 0 10px rgba(168, 85, 247, 0.8), 0 0 20px rgba(168, 85, 247, 0.5), 0 0 30px rgba(168, 85, 247, 0.3);
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes glow {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(168, 85, 247, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(168, 85, 247, 0.6), 0 0 30px rgba(168, 85, 247, 0.4);
+  }
+}
+
+@keyframes rainbow {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.animate-pulse-neon {
+  animation: pulse-neon 2s ease-in-out infinite;
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.animate-glow {
+  animation: glow 2s ease-in-out infinite;
+}
+
+.gradient-purple {
+  background: linear-gradient(135deg, #a855f7 0%, #7c3aed 100%);
+}
+
+.gradient-cyan {
+  background: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%);
+}
+
+.gradient-rainbow {
+  background: linear-gradient(-45deg, #a855f7, #ec4899, #06b6d4, #10b981);
+  background-size: 400% 400%;
+  animation: rainbow 4s ease infinite;
+}
+
+.glass {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.glass-strong {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.text-neon-blue {
+  color: #06b6d4;
+}
+
+.text-neon-cyan {
+  color: #06b6d4;
+}
+
+.bg-neon-blue {
+  background-color: #06b6d4;
+}
+
+/* Preservando estilos necessários do CSS anterior */
+.skeleton {
+  * {
+    pointer-events: none !important;
+  }
+
+  *[class^="text-"] {
+    color: transparent;
+    border-radius: 0.375rem;
+    background-color: rgba(0, 0, 0, 0.2);
+    user-select: none;
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  .skeleton-bg {
+    background-color: rgba(0, 0, 0, 0.1);
+  }
+
+  .skeleton-div {
+    background-color: rgba(0, 0, 0, 0.2);
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+}
+
+.ProseMirror {
+  outline: none;
+}
+
+.cm-editor,
+.cm-gutters {
+  background-color: var(--background);
+  outline: none;
+}
+
+.dark .cm-editor,
+.dark .cm-gutters {
+  background-color: #27272a;
+}
+
+.ͼo.cm-focused > .cm-scroller > .cm-selectionLayer .cm-selectionBackground,
+.ͼo.cm-selectionBackground,
+.ͼo.cm-content::selection {
+  background-color: #e4e4e7;
+}
+
+.dark .ͼo.cm-focused > .cm-scroller > .cm-selectionLayer .cm-selectionBackground,
+.dark .ͼo.cm-selectionBackground,
+.dark .ͼo.cm-content::selection {
+  background-color: #18181b;
+}
+
+.cm-activeLine,
+.cm-activeLineGutter {
+  background-color: transparent !important;
+}
+
+.cm-activeLine {
+  border-top-right-radius: 0.125rem;
+  border-bottom-right-radius: 0.125rem;
+}
+
+.cm-lineNumbers {
+  min-width: 1.75rem;
+}
+
+.cm-foldGutter {
+  min-width: 0.75rem;
+}
+
+.cm-lineNumbers .cm-activeLineGutter {
+  border-top-left-radius: 0.125rem;
+  border-bottom-left-radius: 0.125rem;
+}
+
+.suggestion-highlight {
+  background-color: #bfdbfe;
+}
+
+.suggestion-highlight:hover {
+  background-color: #93c5fd;
+}
+
+.dark .suggestion-highlight {
+  background-color: rgba(59, 130, 246, 0.4);
+  color: #eff6ff;
+}
+
+.dark .suggestion-highlight:hover {
+  background-color: rgba(59, 130, 246, 0.5);
 }
 
 /* Suporte para dark mode no scrollbar */
