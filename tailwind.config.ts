@@ -11,8 +11,9 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['var(--font-geist)'],
+        sans: ['var(--font-poppins)', 'var(--font-geist)', 'sans-serif'],
         mono: ['var(--font-geist-mono)'],
+        poppins: ['var(--font-poppins)'],
       },
       screens: {
         'toast-mobile': '600px',
