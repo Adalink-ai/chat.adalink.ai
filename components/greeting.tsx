@@ -15,7 +15,7 @@ export const Greeting = ({ session }: { session?: Session | null }) => {
   return (
     <div
       key="overview"
-      className="size-full flex items-center justify-center"
+      className="w-full flex items-center justify-center py-12 md:py-20"
     >
       {/* Logo minimalista estilo adaflow */}
       <motion.div

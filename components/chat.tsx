@@ -152,11 +152,15 @@ export function Chat({
 
   return (
     <div 
-      className="flex h-screen pt-16 md:p-4 bg-muted/30 transition-all duration-300"
-      style={{ paddingLeft: `max(16px, ${sidebarWidth}px)` }}
+      className="flex md:h-screen pt-16 md:p-4 bg-muted/30 transition-all duration-300"
+      style={{ 
+        paddingLeft: `max(16px, ${sidebarWidth}px)`,
+        minHeight: '100vh',
+        height: '100vh'
+      }}
     >
-      <div className="flex-1 relative">
-        <div className="relative flex flex-col h-full md:rounded-lg overflow-hidden bg-background border-0 md:border md:border-zinc-200/50 md:dark:border-zinc-800/30">
+      <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col md:rounded-lg overflow-hidden bg-background border-0 md:border md:border-zinc-200/50 md:dark:border-zinc-800/30">
           <BorderAnimation showAnimation={true} />
           <ChatHeader
             selectedModelId={initialChatModel}
