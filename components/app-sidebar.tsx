@@ -38,6 +38,19 @@ export function AppSidebar({ user }: { user: User | undefined }) {
     setMounted(true);
   }, []);
 
+  // Prevenir scroll do body quando menu mobile está aberto
+  useEffect(() => {
+    if (!isCollapsed && typeof window !== 'undefined' && window.innerWidth < 768) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isCollapsed]);
+
   const handleNavClick = (itemId: string, path: string) => {
     if (isCollapsed) {
       setIsCollapsed(false);
@@ -153,7 +166,7 @@ export function AppSidebar({ user }: { user: User | undefined }) {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="md:hidden fixed inset-0 bg-black/60 z-40"
+              className="md:hidden fixed inset-0 bg-black/60 z-40 overflow-hidden"
               onClick={toggleCollapse}
             />
 
@@ -163,9 +176,9 @@ export function AppSidebar({ user }: { user: User | undefined }) {
               animate={{ x: 0 }}
               exit={{ x: '-100%' }}
               transition={{ duration: 0.3, ease: 'easeInOut' }}
-              className="md:hidden fixed left-0 top-16 bottom-0 w-80 bg-[#0A0A0A] z-50 overflow-y-auto"
+              className="md:hidden fixed left-0 top-16 bottom-0 w-80 bg-[#0A0A0A] z-50 flex flex-col overflow-hidden"
             >
-              <div className="p-4">
+              <div className="flex-1 overflow-y-auto p-4">
                 {/* Campo de busca */}
                 <div className="mb-6">
                   <div className="relative">

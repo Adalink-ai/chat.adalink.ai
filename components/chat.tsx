@@ -184,7 +184,7 @@ export function Chat({
           />
 
           {!isReadonly && (
-            <div className="border-t border-zinc-200/50 dark:border-zinc-800/30 px-6 py-4 bg-background">
+            <div className="border-t border-zinc-200/50 dark:border-zinc-800/30 px-4 md:px-6 py-2 md:py-4 bg-background" style={{ paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom))' }}>
               <div className="max-w-4xl mx-auto">
                 <MultimodalInput
                   chatId={id}

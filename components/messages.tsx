@@ -39,9 +39,9 @@ function PureMessages({ chatId, status, messages, session }: MessagesProps) {
     <div className="flex-1 relative">
       <div
         ref={messagesContainerRef}
-        className="absolute inset-0 overflow-y-auto p-6"
+        className="absolute inset-0 overflow-y-auto p-4 md:p-6 pb-safe"
       >
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-4xl mx-auto space-y-4">
           {messages.length === 0 && <Greeting session={session} />}
 
           {messages.map((message) => (
