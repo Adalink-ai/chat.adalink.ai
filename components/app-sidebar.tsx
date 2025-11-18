@@ -212,6 +212,7 @@ export function AppSidebar({ user }: { user: User | undefined }) {
           onClick={() => {
             router.push('/');
             router.refresh();
+            
           }}
           className="size-12 rounded-full bg-[#8F5BFF] hover:bg-[#A970FF] text-white p-0 transition-all duration-200 hover:shadow-lg hover:shadow-[#8F5BFF]/30"
         >
