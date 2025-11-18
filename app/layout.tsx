@@ -7,9 +7,14 @@ import './globals.css';
 import { SessionProvider } from 'next-auth/react';
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://chat.vercel.ai'),
-  title: 'Next.js Chatbot Template',
-  description: 'Next.js chatbot template using the AI SDK.',
+  metadataBase: new URL('https://chat.adalink.ai'),
+  title: 'Adalink Chat - AI Assistant',
+  description: 'Chat inteligente com IA - Adalink',
+  icons: {
+    icon: '/images/favicon-adalink.ico',
+    shortcut: '/images/favicon-adalink.ico',
+    apple: '/images/favicon-adalink.ico',
+  },
 };
 
 export const viewport = {

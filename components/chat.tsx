@@ -20,6 +20,7 @@ import { useSearchParams } from 'next/navigation';
 import { useAutoResume } from '@/hooks/use-auto-resume';
 import { ChatSDKError } from '@/lib/errors';
 import type { Attachment, ChatMessage } from '@/lib/types';
+import { useSidebarContext } from './sidebar-context';
 import { useDataStream } from './data-stream-provider';
 
 export function Chat({
@@ -39,11 +40,15 @@ export function Chat({
 }) {
   const { mutate } = useSWRConfig();
   const { setDataStream } = useDataStream();
+  const { isCollapsed, activePanel } = useSidebarContext();
 
   const [input, setInput] = useState<string>('');
   const [showAnimation, setShowAnimation] = useState(false);
   const [selectedChatModel, setSelectedChatModel] =
     useState<string>(initialChatModel);
+
+  // Calcular padding-left baseado no estado da sidebar
+  const sidebarWidth = isCollapsed ? 0 : (activePanel ? 360 : 80);
 
   const {
     messages,
@@ -146,10 +151,13 @@ export function Chat({
   });
 
   return (
-    <div className="flex h-screen p-4 bg-muted/30">
+    <div 
+      className="flex h-screen pt-16 md:p-4 bg-muted/30 transition-all duration-300"
+      style={{ paddingLeft: `max(16px, ${sidebarWidth}px)` }}
+    >
       <div className="flex-1 relative">
-        <div className="relative flex flex-col h-full rounded-lg overflow-hidden bg-background border border-gray-200 dark:border-purple-custom-500">
-          <BorderAnimation showAnimation={showAnimation} />
+        <div className="relative flex flex-col h-full md:rounded-lg overflow-hidden bg-background border-0 md:border md:border-zinc-200/50 md:dark:border-zinc-800/30">
+          <BorderAnimation showAnimation={true} />
           <ChatHeader
             selectedModelId={initialChatModel}
             isReadonly={isReadonly}
@@ -176,7 +184,7 @@ export function Chat({
           />
 
           {!isReadonly && (
-            <div className="border-t border-gray-200 dark:border-purple-custom-500 px-6 py-4 bg-background">
+            <div className="border-t border-zinc-200/50 dark:border-zinc-800/30 px-6 py-4 bg-background">
               <div className="max-w-4xl mx-auto">
                 <MultimodalInput
                   chatId={id}

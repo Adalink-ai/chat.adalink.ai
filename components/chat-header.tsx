@@ -18,10 +18,10 @@ function PureChatHeader({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div
-            className="size-8 rounded-lg flex items-center justify-center bg-purple-100"
+            className="size-8 rounded-lg flex items-center justify-center"
             style={{
-              backgroundColor: 'rgba(184, 0, 201, 0.1)',
-              color: '#B800C9',
+              backgroundColor: 'rgba(143, 91, 255, 0.15)',
+              color: '#8F5BFF',
             }}
           >
             <MessageIcon size={16} />
@@ -30,7 +30,10 @@ function PureChatHeader({
             <h2 className="font-semibold text-foreground">
               {conversationTitle || 'Nova Conversa'}
             </h2>
-            <p className="text-sm text-purple-custom-500">Online agora</p>
+            <div className="flex items-center gap-1.5">
+              <div className="size-2 rounded-full bg-green-500 animate-pulse" />
+              <p className="text-sm text-[#8F5BFF]">Online</p>
+            </div>
           </div>
         </div>
 

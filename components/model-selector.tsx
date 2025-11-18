@@ -145,7 +145,7 @@ export function ModelSelector({
             >
               <button
                 type="button"
-                className="gap-4 group/item flex flex-row justify-between items-center w-full hover:bg-purple-custom-50"
+                className="gap-4 group/item flex flex-row justify-between items-center w-full hover:bg-[#8F5BFF]/10 transition-colors duration-200"
               >
                 <div className="flex flex-col gap-1 items-start">
                   <div>{chatModel.id}</div>
@@ -154,7 +154,7 @@ export function ModelSelector({
                   </div> */}
                 </div>
 
-                <div className="text-purple-custom-500 opacity-0 group-data-[active=true]/item:opacity-100">
+                <div className="text-[#8F5BFF] opacity-0 group-data-[active=true]/item:opacity-100">
                   <CheckCircleFillIcon />
                 </div>
               </button>
