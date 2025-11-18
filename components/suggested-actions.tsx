@@ -5,6 +5,7 @@ import { Button } from './ui/button';
 import { memo } from 'react';
 import type { UseChatHelpers } from '@ai-sdk/react';
 import type { ChatMessage } from '@/lib/types';
+import { Sparkles, Plane, Lightbulb, TrendingUp } from 'lucide-react';
 
 interface SuggestedActionsProps {
   chatId: string;
@@ -17,42 +18,41 @@ function PureSuggestedActions({
 }: SuggestedActionsProps) {
   const suggestedActions = [
     {
-      title: 'What are the advantages',
-      label: 'of using Next.js?',
-      action: 'What are the advantages of using Next.js?',
+      icon: Sparkles,
+      label: 'Comparar',
+      action: 'Compare diferentes opções para mim',
     },
     {
-      title: 'Write code to',
-      label: `demonstrate djikstra's algorithm`,
-      action: `Write code to demonstrate djikstra's algorithm`,
+      icon: Lightbulb,
+      label: 'Perplexidade 101',
+      action: 'O que é perplexidade em IA?',
     },
     {
-      title: 'Help me write an essay',
-      label: `about silicon valley`,
-      action: `Help me write an essay about silicon valley`,
+      icon: TrendingUp,
+      label: 'Verificação de Fatos',
+      action: 'Verifique os fatos sobre este tópico',
     },
     {
-      title: 'What is the weather',
-      label: 'in San Francisco?',
-      action: 'What is the weather in San Francisco?',
+      icon: Plane,
+      label: 'Resumir',
+      action: 'Resuma este conteúdo de forma clara',
     },
   ];
 
   return (
-    <div
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 20 }}
+      transition={{ delay: 0.4, duration: 0.6 }}
       data-testid="suggested-actions"
-      className="grid sm:grid-cols-2 gap-2 w-full"
+      className="hidden md:flex flex-wrap items-center justify-center gap-2 w-full max-w-3xl mx-auto"
     >
-      {suggestedActions.map((suggestedAction, index) => (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: 20 }}
-          transition={{ delay: 0.05 * index }}
-          key={`suggested-action-${suggestedAction.title}-${index}`}
-          className={index > 1 ? 'hidden sm:block' : 'block'}
-        >
+      {suggestedActions.map((suggestedAction, index) => {
+        const Icon = suggestedAction.icon;
+        return (
           <Button
+            key={`suggested-action-${index}`}
             variant="ghost"
             onClick={async () => {
               window.history.replaceState({}, '', `/chat/${chatId}`);
@@ -62,16 +62,30 @@ function PureSuggestedActions({
                 parts: [{ type: 'text', text: suggestedAction.action }],
               });
             }}
-            className="text-left border rounded-xl px-4 py-3.5 text-sm flex-1 gap-1 sm:flex-col w-full h-auto justify-start items-start"
+            className="
+              group
+              inline-flex items-center gap-2
+              px-4 py-2
+              rounded-full
+              border
+              backdrop-blur-sm
+              text-sm font-light tracking-wide
+              transition-all duration-200
+              border-zinc-200 dark:border-white/10
+              bg-white dark:bg-[#0A0A0A]
+              text-zinc-600 dark:text-white/70
+              hover:border-[#8F5BFF]/50 dark:hover:border-[#8F5BFF]/50
+              hover:bg-[#8F5BFF]/5 dark:hover:bg-[#8F5BFF]/10
+              hover:text-[#8F5BFF] dark:hover:text-white
+              hover:shadow-lg hover:shadow-[#8F5BFF]/20
+            "
           >
-            <span className="font-medium">{suggestedAction.title}</span>
-            <span className="text-muted-foreground">
-              {suggestedAction.label}
-            </span>
+            <Icon className="size-4 text-zinc-400 dark:text-white/50 group-hover:text-[#8F5BFF] transition-colors" />
+            <span>{suggestedAction.label}</span>
           </Button>
-        </motion.div>
-      ))}
-    </div>
+        );
+      })}
+    </motion.div>
   );
 }
 

@@ -49,7 +49,7 @@ export function ActionButtons({
         type="button"
         variant="ghost"
         size="icon"
-        className="size-10 text-gray-500 hover:text-gray-700 hover:bg-gray-100"
+        className="size-10 text-zinc-500 dark:text-white/50 hover:text-[#8F5BFF] dark:hover:text-[#8F5BFF] hover:bg-[#8F5BFF]/10 dark:hover:bg-[#8F5BFF]/10 transition-colors duration-200"
         onClick={handleFileClick}
         disabled={disabled}
         title="Anexar arquivo"
@@ -64,7 +64,7 @@ export function ActionButtons({
         className={`size-10 transition-all duration-200 ${
           isListening
             ? 'text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 animate-pulse'
-            : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+            : 'text-zinc-500 dark:text-white/50 hover:text-[#8F5BFF] dark:hover:text-[#8F5BFF] hover:bg-[#8F5BFF]/10 dark:hover:bg-[#8F5BFF]/10'
         }`}
         onClick={onMicrophoneClick}
         disabled={disabled || !isVoiceSupported}

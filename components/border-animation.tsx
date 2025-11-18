@@ -13,8 +13,8 @@ export function BorderAnimation({ showAnimation }: BorderAnimationProps) {
     );
   }
 
-  const SEGMENT = 0.02;
-  const SPEED = 6;
+  const SEGMENT = 0.03; // Segmento maior
+  const SPEED = 6; // Mais rápido
 
   return (
     <div className="absolute inset-0 rounded-lg pointer-events-none z-10">
@@ -23,27 +23,21 @@ export function BorderAnimation({ showAnimation }: BorderAnimationProps) {
         style={{ borderRadius: 'inherit' }}
       >
         <defs>
-          <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
-            <feGaussianBlur stdDeviation="3" result="blur" />
+          {/* Glow mais forte */}
+          <filter id="glow" x="-150%" y="-150%" width="400%" height="400%">
+            <feGaussianBlur stdDeviation="2.5" result="blur1" />
+            <feGaussianBlur stdDeviation="5" result="blur2" />
             <feMerge>
-              <feMergeNode in="blur" />
+              <feMergeNode in="blur2" />
+              <feMergeNode in="blur1" />
               <feMergeNode in="SourceGraphic" />
             </feMerge>
           </filter>
         </defs>
 
-        <rect
-          x="1"
-          y="1"
-          width="calc(100% - 2px)"
-          height="calc(100% - 2px)"
-          rx="7"
-          ry="7"
-          fill="none"
-          stroke="rgba(17, 24, 39, 0.12)"
-          strokeWidth="1"
-        />
+        {/* Removida a borda base para não aparecer rastro */}
 
+        {/* Borda animada mais forte e maior */}
         <motion.rect
           x="1"
           y="1"
@@ -57,6 +51,7 @@ export function BorderAnimation({ showAnimation }: BorderAnimationProps) {
           strokeLinecap="round"
           pathLength={1}
           strokeDasharray={`${SEGMENT} ${1 - SEGMENT}`}
+          strokeOpacity="0.2"
           animate={{ strokeDashoffset: [1, 0] }}
           transition={{
             duration: SPEED,

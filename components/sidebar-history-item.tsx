@@ -60,13 +60,13 @@ const PureChatItem = ({
         <div
           className={`p-3 rounded-lg cursor-pointer transition-colors group relative group-data-[collapsible=icon]:hidden ${
             isActive
-              ? 'bg-purple-custom-50 border-l-4 border-purple-custom-600'
+              ? 'bg-[#8F5BFF]/10 border-l-4 border-[#8F5BFF]'
               : 'hover:bg-gray-50 dark:hover:bg-gray-800/50'
           }`}
         >
           <div className="flex items-start gap-3">
-            <div className="size-8 bg-purple-custom-100 rounded-lg flex items-center justify-center shrink-0 mt-0.5">
-              <MessageCircle className="size-4 text-purple-custom-600" />
+            <div className="size-8 bg-[#8F5BFF]/20 rounded-lg flex items-center justify-center shrink-0 mt-0.5">
+              <MessageCircle className="size-4 text-[#8F5BFF]" />
             </div>
             <div className="flex-1 min-w-0 overflow-hidden">
               <div className="flex items-start justify-between gap-2">
@@ -152,8 +152,8 @@ const PureChatItem = ({
           <div
             className={`size-10 rounded-lg flex items-center justify-center transition-colors ${
               isActive
-                ? 'bg-purple-custom-500 text-white'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                ? 'bg-[#8F5BFF] text-white'
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700'
             }`}
           >
             <MessageCircle className="size-5" />
