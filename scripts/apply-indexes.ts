@@ -38,6 +38,11 @@ if (!POSTGRES_URL) {
 }
 
 async function applyIndexes() {
+  // TypeScript type guard - garantir que POSTGRES_URL não é undefined
+  if (!POSTGRES_URL) {
+    throw new Error('POSTGRES_URL is not defined');
+  }
+  
   const client = postgres(POSTGRES_URL);
 
   try {
