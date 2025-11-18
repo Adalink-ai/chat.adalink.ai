@@ -73,6 +73,32 @@ export const {
       },
     }),
     Credentials({
+      id: 'sso',
+      name: 'SSO',
+      credentials: {
+        email: { label: "Email", type: "email" },
+        userId: { label: "User ID", type: "text" }
+      },
+      async authorize(credentials) {
+        // Provider SSO - apenas valida que o usuário existe
+        const email = credentials.email as string;
+        const userId = credentials.userId as string;
+        
+        if (!email || !userId) {
+          return null;
+        }
+
+        const users = await getUser(email);
+        
+        if (users.length === 0) {
+          return null;
+        }
+
+        const [user] = users;
+        return { ...user, type: 'regular' };
+      },
+    }),
+    Credentials({
       id: 'guest',
       credentials: {},
       async authorize() {

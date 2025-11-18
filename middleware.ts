@@ -13,6 +13,7 @@ export async function middleware(request: NextRequest) {
     return new Response('pong', { status: 200 });
   }
 
+  // Permitir acesso aos endpoints de autenticação e SSO
   if (pathname.startsWith('/api/auth')) {
     return NextResponse.next();
   }
@@ -28,9 +29,21 @@ export async function middleware(request: NextRequest) {
     secureCookie: !isDevelopmentEnvironment,
   });
 
-  // Force authentication - no guests allowed, redirect to login
+  // Force authentication - no guests allowed
+  // Redirecionar para front-adalink se SSO estiver habilitado
   if (!token) {
-    console.log('[AUTH] No token found, redirecting to login');
+    console.log('[AUTH] No token found');
+    
+    // Se SSO_ENABLED=true, redirecionar para front-adalink
+    if (process.env.SSO_ENABLED === 'true' && process.env.SSO_FRONT_URL) {
+      const callbackUrl = encodeURIComponent(request.url);
+      const ssoLoginUrl = `${process.env.SSO_FRONT_URL}/pt/auth/login?callback=${callbackUrl}`;
+      console.log('[AUTH] Redirecting to SSO:', ssoLoginUrl);
+      return NextResponse.redirect(ssoLoginUrl);
+    }
+    
+    // Caso contrário, redirecionar para login local
+    console.log('[AUTH] Redirecting to local login');
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
@@ -38,7 +51,18 @@ export async function middleware(request: NextRequest) {
 
   // Force real authentication - no guest users allowed
   if (isGuest) {
-    console.log('[AUTH] Guest user detected, redirecting to login');
+    console.log('[AUTH] Guest user detected');
+    
+    // Se SSO estiver habilitado, redirecionar para front-adalink
+    if (process.env.SSO_ENABLED === 'true' && process.env.SSO_FRONT_URL) {
+      const callbackUrl = encodeURIComponent(request.url);
+      const ssoLoginUrl = `${process.env.SSO_FRONT_URL}/pt/auth/login?callback=${callbackUrl}`;
+      console.log('[AUTH] Redirecting guest to SSO:', ssoLoginUrl);
+      return NextResponse.redirect(ssoLoginUrl);
+    }
+    
+    // Caso contrário, redirecionar para login local
+    console.log('[AUTH] Redirecting guest to local login');
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
