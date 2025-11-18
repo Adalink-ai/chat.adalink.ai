@@ -214,7 +214,7 @@ export function AppSidebar({ user }: { user: User | undefined }) {
             router.refresh();
 
           }}
-          className="size-11 rounded-full bg-[#8F5BFF] hover:bg-[#A970FF] text-white p-0 transition-all duration-200 hover:shadow-lg hover:shadow-[#8F5BFF]/30"
+          className="size-12 rounded-full bg-[#8F5BFF] hover:bg-[#A970FF] text-white p-0 transition-all duration-200 hover:shadow-lg hover:shadow-[#8F5BFF]/30"
         >
           <Plus className="size-6" />
         </Button>
