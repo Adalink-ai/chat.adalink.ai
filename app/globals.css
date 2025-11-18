@@ -278,3 +278,19 @@
 .dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: #7c3aed;
 }
+
+/* Safe area support for iOS */
+@supports (padding: max(0px)) {
+  .pb-safe {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+
+  .pt-safe {
+    padding-top: max(1rem, env(safe-area-inset-top));
+  }
+
+  .px-safe {
+    padding-left: max(1rem, env(safe-area-inset-left));
+    padding-right: max(1rem, env(safe-area-inset-right));
+  }
+}

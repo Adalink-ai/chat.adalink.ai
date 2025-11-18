@@ -19,6 +19,7 @@ export const metadata: Metadata = {
 
 export const viewport = {
   maximumScale: 1, // Disable auto-zoom on mobile Safari
+  viewportFit: 'cover', // Support for iPhone notch and safe areas
 };
 
 const geist = Geist({

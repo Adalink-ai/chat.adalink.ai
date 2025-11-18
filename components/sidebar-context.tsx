@@ -12,8 +12,8 @@ interface SidebarContextType {
 const SidebarContext = createContext<SidebarContextType | undefined>(undefined);
 
 export function SidebarContextProvider({ children }: { children: ReactNode }) {
-  const [isCollapsed, setIsCollapsed] = useState(false);
-  const [activePanel, setActivePanel] = useState<string | null>('home');
+  const [isCollapsed, setIsCollapsed] = useState(true);
+  const [activePanel, setActivePanel] = useState<string | null>(null);
 
   return (
     <SidebarContext.Provider value={{ isCollapsed, setIsCollapsed, activePanel, setActivePanel }}>

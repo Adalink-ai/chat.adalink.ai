@@ -311,7 +311,7 @@ function PureMultimodalInput({
         </div>
       )}
 
-      <div className="flex flex-col gap-3 max-w-3xl mx-auto w-full px-4 md:px-0">
+      <div className="flex flex-col gap-2 max-w-3xl mx-auto w-full px-4 md:px-0">
         <div className="flex-1 relative">
           <Textarea
             data-testid="multimodal-input"
@@ -319,7 +319,7 @@ function PureMultimodalInput({
             placeholder={isMobile ? "Como posso ajudar?" : "Como posso ajudar?"}
             value={displayValue}
             onChange={handleInput}
-className={`pr-14 py-4 px-6 text-base border rounded-2xl transition-all duration-200 resize-none min-h-[60px] font-light
+className={`pr-12 py-3 px-4 text-base border rounded-2xl transition-all duration-200 resize-none min-h-[52px] max-h-[52px] font-light
   border-zinc-200 dark:border-white/10
   bg-white dark:bg-[#111315]
   text-zinc-900 dark:text-white
