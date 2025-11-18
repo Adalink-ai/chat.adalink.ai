@@ -155,8 +155,7 @@ export function Chat({
       className="flex md:h-screen pt-16 md:p-4 bg-muted/30 transition-all duration-300"
       style={{ 
         paddingLeft: `max(16px, ${sidebarWidth}px)`,
-        minHeight: '100vh',
-        height: '100vh'
+        height: '100dvh'
       }}
     >
       <div className="flex-1 flex flex-col">
