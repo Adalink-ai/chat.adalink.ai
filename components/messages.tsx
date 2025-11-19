@@ -37,14 +37,14 @@ function PureMessages({ chatId, status, messages, session }: MessagesProps) {
 
   return (
     <div className="flex-1 relative min-h-0">
+      {messages.length === 0 && <Greeting session={session} />}
+      
       <div
         ref={messagesContainerRef}
         className="absolute inset-0 overflow-y-auto p-4 md:p-6"
         style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}
       >
         <div className="max-w-4xl mx-auto space-y-4">
-          {messages.length === 0 && <Greeting session={session} />}
-
           {messages.map((message) => (
             <MessageBubble
               key={message.id}

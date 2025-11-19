@@ -209,7 +209,7 @@ export function AppSidebar({ user }: { user: User | undefined }) {
         <motion.div 
           animate={{ width: isCollapsed ? 0 : 80 }}
           transition={{ duration: 0.3 }}
-          className="bg-[#0A0A0A] dark:bg-[#0A0A0A] flex flex-col items-center py-6 gap-8 border-r border-zinc-200 dark:border-white/5 overflow-hidden"
+          className="bg-white dark:bg-[#0A0A0A] flex flex-col items-center py-6 gap-8 border-r border-zinc-200 dark:border-white/5 overflow-hidden"
         >
         {/* Logo */}
         <Image
