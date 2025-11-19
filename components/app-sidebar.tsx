@@ -176,13 +176,13 @@ export function AppSidebar({ user }: { user: User | undefined }) {
               animate={{ x: 0 }}
               exit={{ x: '-100%' }}
               transition={{ duration: 0.3, ease: 'easeInOut' }}
-              className="md:hidden fixed left-0 top-16 bottom-0 w-80 bg-[#0A0A0A] z-50 flex flex-col overflow-hidden"
+              className="md:hidden fixed left-0 top-16 bottom-0 w-80 bg-white dark:bg-[#0A0A0A] z-50 flex flex-col overflow-hidden"
             >
               <div className="flex-1 overflow-y-auto p-4">
                 {/* Campo de busca */}
                 <div className="mb-6">
                   <div className="relative">
-                    <svg className="absolute left-3 top-1/2 -translate-y-1/2 size-5 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="absolute left-3 top-1/2 -translate-y-1/2 size-5 text-zinc-400 dark:text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                     </svg>
                     <input
@@ -190,7 +190,7 @@ export function AppSidebar({ user }: { user: User | undefined }) {
                       placeholder="Buscar"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      className="w-full pl-10 pr-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-white placeholder:text-white/40 focus:outline-none focus:border-[#8F5BFF]"
+                      className="w-full pl-10 pr-4 py-2.5 bg-zinc-100 dark:bg-white/5 border border-zinc-200 dark:border-white/10 rounded-lg text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-white/40 focus:outline-none focus:border-[#8F5BFF]"
                     />
                   </div>
                 </div>
