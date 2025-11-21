@@ -9,6 +9,7 @@ import {
   primaryKey,
   foreignKey,
   boolean,
+  uniqueIndex,
 } from 'drizzle-orm/pg-core';
 
 export const user = pgTable('User', {
@@ -168,3 +169,45 @@ export const stream = pgTable(
 );
 
 export type Stream = InferSelectModel<typeof stream>;
+
+export const connector = pgTable('connectors', {
+  id: uuid('id').primaryKey().notNull().defaultRandom(),
+  name: varchar('name', { length: 100 }).notNull(),
+  slug: varchar('slug', { length: 50 }).notNull().unique(),
+  provider: varchar('provider', { length: 50 }).notNull(),
+  iconUrl: text('icon_url').notNull(),
+  description: text('description'),
+  isActive: boolean('is_active').notNull().default(true),
+  oauthConfig: json('oauth_config').notNull(),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+});
+
+export type Connector = InferSelectModel<typeof connector>;
+
+export const userConnection = pgTable(
+  'user_connections',
+  {
+    id: uuid('id').primaryKey().notNull().defaultRandom(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    connectorId: uuid('connector_id')
+      .notNull()
+      .references(() => connector.id, { onDelete: 'cascade' }),
+    accessToken: text('access_token').notNull(),
+    refreshToken: text('refresh_token'),
+    tokenExpiresAt: timestamp('token_expires_at'),
+    scopes: text('scopes').array(),
+    metadata: json('metadata'),
+    isActive: boolean('is_active').notNull().default(true),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+    updatedAt: timestamp('updated_at').notNull().defaultNow(),
+  },
+  (table) => ({
+    userConnectorUnique: uniqueIndex(
+      'user_connections_user_connector_unique',
+    ).on(table.userId, table.connectorId),
+  }),
+);
+
+export type UserConnection = InferSelectModel<typeof userConnection>;
