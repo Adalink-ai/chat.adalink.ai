@@ -27,6 +27,18 @@ export function UploadModal({ open, onClose }: UploadModalProps) {
     clearFiles,
   } = useFileUpload();
 
+  const handleOpenChange = (newOpen: boolean) => {
+    // Only handle close (when newOpen is false)
+    if (!newOpen) {
+      if (!isUploading) {
+        clearFiles();
+        onClose();
+      }
+      // If uploading, prevent close by not calling onClose
+      // The Dialog will remain open because parent's open prop hasn't changed
+    }
+  };
+
   const handleClose = () => {
     if (!isUploading) {
       clearFiles();
@@ -39,8 +51,8 @@ export function UploadModal({ open, onClose }: UploadModalProps) {
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-xl">
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle>Enviar Arquivos</DialogTitle>
           <DialogDescription>
