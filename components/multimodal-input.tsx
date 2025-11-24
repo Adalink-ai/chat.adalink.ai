@@ -20,7 +20,7 @@ import { PreviewAttachment } from './preview-attachment';
 import { Button } from './ui/button';
 import { Textarea } from './ui/textarea';
 import { SuggestedActions } from './suggested-actions';
-import { ActionButtons } from './action-buttons';
+import { UploadButton } from './upload-button';
 import equal from 'fast-deep-equal';
 import type { UseChatHelpers } from '@ai-sdk/react';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -312,14 +312,18 @@ function PureMultimodalInput({
       )}
 
       <div className="flex flex-col gap-2 max-w-3xl mx-auto w-full px-4 md:px-0">
+        
         <div className="flex-1 relative">
+          <UploadButton
+            disabled={status !== 'ready'}
+          />
           <Textarea
             data-testid="multimodal-input"
             ref={textareaRef}
             placeholder={isMobile ? "Como posso ajudar?" : "Como posso ajudar?"}
             value={displayValue}
             onChange={handleInput}
-className={`pr-12 py-3 px-4 text-base border rounded-2xl transition-all duration-200 resize-none min-h-[52px] max-h-[52px] font-light
+className={`pl-12 pr-12 py-3 text-base border rounded-2xl transition-all duration-200 resize-none min-h-[52px] max-h-[52px] font-light
   border-zinc-200 dark:border-white/10
   bg-white dark:bg-[#111315]
   text-zinc-900 dark:text-white
