@@ -1,68 +1,98 @@
-import { put } from '@vercel/blob';
 import { NextResponse } from 'next/server';
-import { z } from 'zod';
-
+import { randomUUID } from 'crypto';
 import { auth } from '@/app/(auth)/auth';
+import {
+  generateFileKey,
+  getPresignedUrlToUpload,
+  getPublicUrl,
+  validateFileType,
+  validateFileSize,
+  sanitizeFileName,
+  FileTypeError,
+  FileSizeError,
+} from '@/features/upload-files/server';
 
-// Use Blob instead of File since File is not available in Node.js environment
-const FileSchema = z.object({
-  file: z
-    .instanceof(Blob)
-    .refine((file) => file.size <= 5 * 1024 * 1024, {
-      message: 'File size should be less than 5MB',
-    })
-    // Update the file type based on the kind of files you want to accept
-    .refine((file) => ['image/jpeg', 'image/png'].includes(file.type), {
-      message: 'File type should be JPEG or PNG',
-    }),
-});
+interface UploadRequest {
+  fileName: string;
+  fileSize: number;
+  fileType: string;
+}
 
 export async function POST(request: Request) {
   const session = await auth();
 
-  if (!session) {
+  if (!session?.user?.id) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   if (request.body === null) {
-    return new Response('Request body is empty', { status: 400 });
+    return NextResponse.json({ error: 'Request body is empty' }, { status: 400 });
   }
 
   try {
-    const formData = await request.formData();
-    const file = formData.get('file') as Blob;
+    const body: UploadRequest = await request.json();
 
-    if (!file) {
-      return NextResponse.json({ error: 'No file uploaded' }, { status: 400 });
+    if (!body.fileName || !body.fileSize || !body.fileType) {
+      return NextResponse.json(
+        { error: 'Missing required fields: fileName, fileSize, fileType' },
+        { status: 400 }
+      );
     }
 
-    const validatedFile = FileSchema.safeParse({ file });
+    // Validate file size
+    validateFileSize(body.fileSize);
 
-    if (!validatedFile.success) {
-      const errorMessage = validatedFile.error.errors
-        .map((error) => error.message)
-        .join(', ');
+    // Validate file type
+    validateFileType(body.fileName, body.fileType);
 
-      return NextResponse.json({ error: errorMessage }, { status: 400 });
-    }
+    // Sanitize filename
+    const sanitizedFileName = sanitizeFileName(body.fileName);
 
-    // Get filename from formData since Blob doesn't have name property
-    const filename = (formData.get('file') as File).name;
-    const fileBuffer = await file.arrayBuffer();
+    // Generate job ID for tracking
+    const jobId = randomUUID();
 
-    try {
-      const data = await put(`${filename}`, fileBuffer, {
-        access: 'public',
-      });
+    // Generate unique key for S3
+    const key = generateFileKey(sanitizedFileName, session.user.id);
 
-      return NextResponse.json(data);
-    } catch (error) {
-      return NextResponse.json({ error: 'Upload failed' }, { status: 500 });
-    }
+    // Generate presigned URL for direct upload (expires in 1 hour)
+    const uploadUrl = await getPresignedUrlToUpload(key, body.fileType, 3600);
+
+    // Generate public URL for the file
+    const publicUrl = getPublicUrl(key);
+
+    // Get worker URL from environment or use default
+    const workerUrl =
+      process.env.CLOUDFLARE_WORKER_URL ||
+      'https://adalink-upload-worker.adalink.workers.dev';
+
+    return NextResponse.json({
+      uploadUrl, // Presigned URL for direct S3 upload
+      workerUrl: `${workerUrl}/upload`, // Worker URL for processing notification
+      jobId, // Job identifier for tracking
+      key, // S3 key where file will be stored
+      publicUrl, // Public URL after upload
+      expiresIn: 3600, // URL expiration time in seconds
+    });
   } catch (error) {
+    console.error('Upload initialization error:', error);
+
+    if (error instanceof FileTypeError) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: 400 }
+      );
+    }
+
+    if (error instanceof FileSizeError) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: 400 }
+      );
+    }
+
     return NextResponse.json(
-      { error: 'Failed to process request' },
-      { status: 500 },
+      { error: error instanceof Error ? error.message : 'Failed to initialize upload' },
+      { status: 500 }
     );
   }
 }

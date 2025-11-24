@@ -3,7 +3,7 @@
 import { useState, useCallback } from 'react';
 import { Plus } from 'lucide-react';
 import { Button } from './ui/button';
-import { UploadModal } from './upload-modal';
+import { UploadModal } from '@/features/upload-files';
 
 interface UploadButtonProps {
   disabled?: boolean;
@@ -34,12 +34,10 @@ export function UploadButton({  disabled = false }: UploadButtonProps) {
       <Plus size={18} />
     </Button>
 
-    {isUploadModalOpen && (
-      <UploadModal
-        open={isUploadModalOpen}
-        onClose={() => setIsUploadModalOpen(false)}
-      />
-    )}
+    <UploadModal
+      open={isUploadModalOpen}
+      onClose={() => setIsUploadModalOpen(false)}
+    />
     </>
   );
 }
