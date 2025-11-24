@@ -58,15 +58,35 @@ export function useJobPolling() {
             maxAttempts: config.maxAttempts,
           });
 
-          const response = await fetch(`/api/files/job-status/${jobId}`);
+          const response = await fetch(`/api/files/job-status/${jobId}`, {
+            cache: 'no-store',
+            headers: {
+              'Cache-Control': 'no-cache',
+            },
+          });
 
           if (!response.ok) {
-            console.error('[POLLING] ❌ Failed to fetch job status:', {
+            const errorData = await response.json().catch(() => ({}));
+            const errorMessage = errorData.error || `Erro ${response.status}: ${response.statusText}`;
+            
+            console.error('[POLLING] ❌ Failed to fetch job status, stopping polling:', {
               jobId,
+              fileName,
               status: response.status,
               statusText: response.statusText,
+              error: errorData,
             });
-            throw new Error('Falha ao verificar status');
+
+            toast.dismiss('upload-progress');
+            toast.error('Erro ao verificar status', {
+              description: errorMessage,
+            });
+
+            if (pollIntervalRef.current) {
+              clearInterval(pollIntervalRef.current);
+              pollIntervalRef.current = null;
+            }
+            return;
           }
 
           const job: Job = await response.json();
@@ -135,36 +155,26 @@ export function useJobPolling() {
           attempts++;
         } catch (error) {
           const pollDuration = Date.now() - pollStartTime;
-          attempts++;
+          const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
 
-          console.error('[POLLING] ❌ Poll error:', {
+          console.error('[POLLING] ❌ Poll error, stopping polling immediately:', {
             jobId,
-            attempt: attempts,
-            error: error instanceof Error ? error.message : 'Unknown error',
+            fileName,
+            attempt: attempts + 1,
+            error: errorMessage,
             duration: `${pollDuration}ms`,
           });
 
-          if (attempts >= config.maxAttempts) {
-            const totalDuration = Date.now() - pollingStartTime;
-            const errorMessage = 'Falha na comunicação com o servidor';
+          toast.dismiss('upload-progress');
+          toast.error('Erro ao verificar status', {
+            description: errorMessage,
+          });
 
-            console.error('[POLLING] ❌ Max attempts reached after errors:', {
-              jobId,
-              fileName,
-              attempts,
-              totalDuration: `${totalDuration}ms`,
-            });
-
-            toast.dismiss('upload-progress');
-            toast.error('Erro de comunicação', {
-              description: errorMessage,
-            });
-
-            if (pollIntervalRef.current) {
-              clearInterval(pollIntervalRef.current);
-              pollIntervalRef.current = null;
-            }
+          if (pollIntervalRef.current) {
+            clearInterval(pollIntervalRef.current);
+            pollIntervalRef.current = null;
           }
+          return;
         }
       };
 

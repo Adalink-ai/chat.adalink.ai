@@ -32,6 +32,7 @@ export interface Job {
   fileType: string;
   createdAt: string;
   updatedAt: string;
+  completedAt?: string; // Timestamp when job completed (status === 'complete' or 'error')
   result?: {
     fileId?: string;
     url?: string;
@@ -43,6 +44,7 @@ export interface Job {
     userAgent?: string;
     originalFileName?: string;
     s3Key?: string;
+    userId?: string;
     [key: string]: any;
   };
 }
