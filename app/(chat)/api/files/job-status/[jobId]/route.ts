@@ -11,9 +11,13 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ jobId: string }> }
 ) {
+  const startTime = Date.now();
+  console.log('[JOB STATUS API] 📥 Request received');
+
   const session = await auth();
 
   if (!session?.user?.id) {
+    console.error('[JOB STATUS API] ❌ Unauthorized - no user session');
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
@@ -21,7 +25,13 @@ export async function GET(
     const resolvedParams = await params;
     const { jobId } = resolvedParams;
 
+    console.log('[JOB STATUS API] 🔍 Fetching job status:', {
+      jobId,
+      userId: session.user.id,
+    });
+
     if (!jobId || typeof jobId !== 'string') {
+      console.error('[JOB STATUS API] ❌ Invalid job ID:', jobId);
       return NextResponse.json(
         { error: 'Invalid job ID' },
         { status: 400 }
@@ -31,6 +41,14 @@ export async function GET(
     // Check in-memory store first (for testing)
     const cachedJob = jobStore.get(jobId);
     if (cachedJob) {
+      const duration = Date.now() - startTime;
+      console.log('[JOB STATUS API] ✅ Job found in cache:', {
+        jobId,
+        status: cachedJob.status,
+        cache: 'HIT',
+        duration: `${duration}ms`,
+      });
+
       return NextResponse.json(cachedJob, {
         headers: {
           'X-Cache': 'HIT',
@@ -60,6 +78,15 @@ export async function GET(
       updatedAt: new Date().toISOString(),
     };
 
+    const duration = Date.now() - startTime;
+    console.log('[JOB STATUS API] ⚠️ Job not found, returning default pending status:', {
+      jobId,
+      status: defaultJob.status,
+      cache: 'MISS',
+      duration: `${duration}ms`,
+      note: 'Worker should update job status in Redis when processing completes',
+    });
+
     return NextResponse.json(defaultJob, {
       headers: {
         'X-Cache': 'MISS',
@@ -69,7 +96,12 @@ export async function GET(
       },
     });
   } catch (error) {
-    console.error('Job status error:', error);
+    const duration = Date.now() - startTime;
+    console.error('[JOB STATUS API] ❌ Error fetching job status:', {
+      error: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      duration: `${duration}ms`,
+    });
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Failed to get job status' },
       { status: 500 }

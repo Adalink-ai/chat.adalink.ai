@@ -94,26 +94,62 @@ export function useFileUpload() {
   const handleUpload = useCallback(async (onClose: () => void) => {
     if (isUploading || selectedFiles.length === 0) {
       if (selectedFiles.length === 0) {
+        console.warn('[UPLOAD HOOK] ⚠️ No files selected');
         toast.error('Por favor, selecione pelo menos um arquivo');
       }
       return;
     }
+
+    const uploadStartTime = Date.now();
+    console.log('[UPLOAD HOOK] 🚀 Starting upload process:', {
+      fileCount: selectedFiles.length,
+      files: selectedFiles.map(f => ({ name: f.name, size: f.size, type: f.type })),
+    });
 
     setIsUploading(true);
 
     try {
       const filesToUpload = [...selectedFiles];
       let successCount = 0;
+      let failureCount = 0;
 
-      for (const file of filesToUpload) {
+      for (let i = 0; i < filesToUpload.length; i++) {
+        const file = filesToUpload[i];
+        console.log('[UPLOAD HOOK] 📤 Uploading file:', {
+          index: i + 1,
+          total: filesToUpload.length,
+          fileName: file.name,
+        });
+
         const success = await uploadFileToS3({
           file,
           pollForResult,
         });
+
         if (success) {
           successCount++;
+          console.log('[UPLOAD HOOK] ✅ File upload succeeded:', {
+            fileName: file.name,
+            index: i + 1,
+            total: filesToUpload.length,
+          });
+        } else {
+          failureCount++;
+          console.error('[UPLOAD HOOK] ❌ File upload failed:', {
+            fileName: file.name,
+            index: i + 1,
+            total: filesToUpload.length,
+          });
         }
       }
+
+      const totalDuration = Date.now() - uploadStartTime;
+      console.log('[UPLOAD HOOK] 📊 Upload process complete:', {
+        totalFiles: filesToUpload.length,
+        successCount,
+        failureCount,
+        totalDuration: `${totalDuration}ms`,
+      });
 
       if (successCount > 0) {
         toast.success(`${successCount} arquivo(s) enviado(s) com sucesso!`);
@@ -121,8 +157,16 @@ export function useFileUpload() {
 
       setSelectedFiles([]);
       onClose();
+    } catch (error) {
+      const totalDuration = Date.now() - uploadStartTime;
+      console.error('[UPLOAD HOOK] ❌ Upload process error:', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined,
+        totalDuration: `${totalDuration}ms`,
+      });
     } finally {
       setIsUploading(false);
+      console.log('[UPLOAD HOOK] 🏁 Upload process finished');
     }
   }, [isUploading, selectedFiles, pollForResult]);
 

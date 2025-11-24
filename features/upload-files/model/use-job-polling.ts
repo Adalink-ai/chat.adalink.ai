@@ -16,12 +16,28 @@ export function useJobPolling() {
       };
 
       let attempts = 0;
+      const pollingStartTime = Date.now();
 
-      console.log('🔍 Iniciando polling para jobId:', jobId);
+      console.log('[POLLING] 🔍 Starting polling:', {
+        jobId,
+        fileName,
+        maxAttempts: config.maxAttempts,
+        pollInterval: `${config.pollInterval}ms`,
+      });
 
       const poll = async () => {
+        const pollStartTime = Date.now();
+
         if (attempts >= config.maxAttempts) {
+          const totalDuration = Date.now() - pollingStartTime;
           const errorMessage = 'Tempo limite de processamento excedido';
+
+          console.error('[POLLING] ❌ Max attempts reached:', {
+            jobId,
+            fileName,
+            attempts,
+            totalDuration: `${totalDuration}ms`,
+          });
 
           toast.dismiss('upload-progress');
           toast.error('Tempo limite excedido', {
@@ -36,18 +52,44 @@ export function useJobPolling() {
         }
 
         try {
+          console.log('[POLLING] 📡 Polling job status:', {
+            jobId,
+            attempt: attempts + 1,
+            maxAttempts: config.maxAttempts,
+          });
+
           const response = await fetch(`/api/files/job-status/${jobId}`);
 
           if (!response.ok) {
+            console.error('[POLLING] ❌ Failed to fetch job status:', {
+              jobId,
+              status: response.status,
+              statusText: response.statusText,
+            });
             throw new Error('Falha ao verificar status');
           }
 
           const job: Job = await response.json();
+          const pollDuration = Date.now() - pollStartTime;
 
-          console.log(`📊 Poll attempt ${attempts + 1}: status=${job.status}`);
+          console.log('[POLLING] 📊 Job status received:', {
+            jobId,
+            attempt: attempts + 1,
+            status: job.status,
+            duration: `${pollDuration}ms`,
+            hasResult: !!job.result,
+            hasError: !!job.error,
+          });
 
           if (job.status === 'complete') {
-            console.log('✅ Upload completo! Arquivo:', fileName);
+            const totalDuration = Date.now() - pollingStartTime;
+            console.log('[POLLING] ✅ Job completed:', {
+              jobId,
+              fileName,
+              attempts: attempts + 1,
+              totalDuration: `${totalDuration}ms`,
+              result: job.result,
+            });
 
             toast.dismiss('upload-progress');
             toast.success('Upload concluído!', {
@@ -60,7 +102,16 @@ export function useJobPolling() {
             }
             return;
           } else if (job.status === 'error') {
+            const totalDuration = Date.now() - pollingStartTime;
             const errorMessage = job.error || 'Erro ao processar arquivo';
+
+            console.error('[POLLING] ❌ Job failed:', {
+              jobId,
+              fileName,
+              attempts: attempts + 1,
+              totalDuration: `${totalDuration}ms`,
+              error: errorMessage,
+            });
 
             toast.dismiss('upload-progress');
             toast.error('Erro no processamento', {
@@ -74,12 +125,36 @@ export function useJobPolling() {
             return;
           }
 
+          // Still pending or processing
+          console.log('[POLLING] ⏳ Job still processing:', {
+            jobId,
+            status: job.status,
+            attempt: attempts + 1,
+          });
+
           attempts++;
         } catch (error) {
+          const pollDuration = Date.now() - pollStartTime;
           attempts++;
 
+          console.error('[POLLING] ❌ Poll error:', {
+            jobId,
+            attempt: attempts,
+            error: error instanceof Error ? error.message : 'Unknown error',
+            duration: `${pollDuration}ms`,
+          });
+
           if (attempts >= config.maxAttempts) {
+            const totalDuration = Date.now() - pollingStartTime;
             const errorMessage = 'Falha na comunicação com o servidor';
+
+            console.error('[POLLING] ❌ Max attempts reached after errors:', {
+              jobId,
+              fileName,
+              attempts,
+              totalDuration: `${totalDuration}ms`,
+            });
+
             toast.dismiss('upload-progress');
             toast.error('Erro de comunicação', {
               description: errorMessage,
@@ -94,15 +169,20 @@ export function useJobPolling() {
       };
 
       // First poll immediately
+      console.log('[POLLING] 🚀 Starting immediate poll...');
       poll();
       // Then poll at intervals
       pollIntervalRef.current = setInterval(poll, config.pollInterval);
+      console.log('[POLLING] ⏰ Polling interval set:', {
+        interval: `${config.pollInterval}ms`,
+      });
     },
     []
   );
 
   const stopPolling = useCallback(() => {
     if (pollIntervalRef.current) {
+      console.log('[POLLING] 🛑 Stopping polling interval');
       clearInterval(pollIntervalRef.current);
       pollIntervalRef.current = null;
     }
