@@ -10,6 +10,8 @@ import {
   FileTypeError,
   FileSizeError,
 } from '@/features/upload-files/server';
+import { setJob } from '@/features/upload-files/lib/job-store';
+import type { Job } from '@/features/upload-files/model/types';
 
 interface UploadRequest {
   fileName: string;
@@ -90,6 +92,28 @@ export async function POST(request: Request) {
       process.env.CLOUDFLARE_WORKER_URL ||
       'https://adalink-upload-worker.adalink.workers.dev';
     console.log('[UPLOAD API] 👷 Worker URL:', `${workerUrl}/upload`);
+
+    // Create initial job in store
+    const initialJob: Job = {
+      id: jobId,
+      status: 'pending',
+      fileName: sanitizedFileName,
+      fileSize: body.fileSize,
+      fileType: body.fileType,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      metadata: {
+        originalFileName: body.fileName,
+        s3Key: key,
+        userId: session.user.id,
+      },
+    };
+
+    setJob(initialJob);
+    console.log('[UPLOAD API] 📝 Job created in store:', {
+      jobId,
+      status: initialJob.status,
+    });
 
     const response = {
       uploadUrl, // Presigned URL for direct S3 upload

@@ -18,6 +18,12 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // Permitir acesso ao webhook sem autenticação de usuário
+  // O webhook tem sua própria autenticação (IP, header secret, HMAC)
+  if (pathname.startsWith('/api/upload/webhook') || pathname.startsWith('/api/files/webhook')) {
+    return NextResponse.next();
+  }
+
   // Allow access to authentication pages without token to prevent redirect loops
   if (pathname === '/login' || pathname === '/register') {
     return NextResponse.next();
@@ -82,6 +88,7 @@ export const config = {
      * - _next/image (image optimization files)
      * - favicon.ico, sitemap.xml, robots.txt (metadata files)
      * - /api/auth (authentication endpoints)
+     * - /api/upload/webhook, /api/files/webhook (webhook endpoints - have their own auth)
      * - /ping (health check)
      */
     '/((?!_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt|api/auth|ping).*)',

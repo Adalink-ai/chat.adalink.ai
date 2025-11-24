@@ -1,12 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/app/(auth)/auth';
-
-// Simple in-memory job store (replace with Redis in production)
-// In production, this should use Redis or a database
-const jobStore = new Map<string, any>();
-
-// For now, we'll return a mock job status
-// In production, this should fetch from Redis
+import { getJob } from '@/features/upload-files/lib/job-store';
+import type { Job } from '@/features/upload-files/model/types';
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ jobId: string }> }
@@ -38,63 +33,53 @@ export async function GET(
       );
     }
 
-    // Check in-memory store first (for testing)
-    const cachedJob = jobStore.get(jobId);
-    if (cachedJob) {
+    // Get job from store (in-memory for now, Redis in production)
+    const job = getJob(jobId);
+
+    if (job) {
       const duration = Date.now() - startTime;
-      console.log('[JOB STATUS API] ✅ Job found in cache:', {
+      console.log('[JOB STATUS API] ✅ Job found:', {
         jobId,
-        status: cachedJob.status,
+        status: job.status,
+        hasResult: !!job.result,
+        hasError: !!job.error,
+        completedAt: job.completedAt,
         cache: 'HIT',
         duration: `${duration}ms`,
+        fullJob: JSON.stringify(job, null, 2),
       });
 
-      return NextResponse.json(cachedJob, {
+      return NextResponse.json(job, {
         headers: {
           'X-Cache': 'HIT',
-          'Cache-Control': 'private, max-age=5',
+          'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0',
           'Content-Type': 'application/json',
-          'X-Job-Status': cachedJob.status,
+          'X-Job-Status': job.status,
+          'X-Timestamp': Date.now().toString(), // Add timestamp to prevent caching
         },
       });
     }
 
-    // TODO: In production, fetch from Redis:
-    // const redisClient = getRedisClient();
-    // const job = await redisClient.getJob(jobId);
-    // if (!job) {
-    //   return NextResponse.json({ error: 'Job not found' }, { status: 404 });
-    // }
-
-    // For now, return a default pending status
-    // The worker should update this job in Redis when processing completes
-    const defaultJob = {
-      id: jobId,
-      status: 'pending' as const,
-      fileName: '',
-      fileSize: 0,
-      fileType: '',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-
+    // Job not found - return 404
     const duration = Date.now() - startTime;
-    console.log('[JOB STATUS API] ⚠️ Job not found, returning default pending status:', {
+    console.log('[JOB STATUS API] ⚠️ Job not found:', {
       jobId,
-      status: defaultJob.status,
       cache: 'MISS',
       duration: `${duration}ms`,
-      note: 'Worker should update job status in Redis when processing completes',
     });
 
-    return NextResponse.json(defaultJob, {
-      headers: {
-        'X-Cache': 'MISS',
-        'Cache-Control': 'private, max-age=2',
-        'Content-Type': 'application/json',
-        'X-Job-Status': defaultJob.status,
+    return NextResponse.json(
+      { error: 'Job not found' },
+      {
+        status: 404,
+        headers: {
+          'X-Cache': 'MISS',
+          'Content-Type': 'application/json',
+        },
       },
-    });
+    );
   } catch (error) {
     const duration = Date.now() - startTime;
     console.error('[JOB STATUS API] ❌ Error fetching job status:', {
@@ -109,6 +94,4 @@ export async function GET(
   }
 }
 
-// Export jobStore for potential updates from worker webhooks
-export { jobStore };
 
