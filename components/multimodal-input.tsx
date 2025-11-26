@@ -71,6 +71,76 @@ function PureMultimodalInput({
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  // Scroll automático quando o input recebe foco no mobile
+  useEffect(() => {
+    if (!isMobile || !textareaRef.current) return;
+
+    const textarea = textareaRef.current;
+    
+    const scrollInputIntoView = () => {
+      // Usar scrollIntoView com opções que funcionam melhor no mobile
+      textarea.scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'center',
+        inline: 'nearest'
+      });
+      
+      // Scroll adicional do window para garantir visibilidade
+      setTimeout(() => {
+        const inputRect = textarea.getBoundingClientRect();
+        const viewportHeight = window.visualViewport?.height || window.innerHeight;
+        const inputBottom = inputRect.bottom;
+        
+        // Se o input está abaixo da área visível (considerando teclado)
+        if (inputBottom > viewportHeight - 20) {
+          const scrollAmount = inputBottom - viewportHeight + 50;
+          window.scrollBy({
+            top: scrollAmount,
+            behavior: 'smooth'
+          });
+        }
+      }, 150);
+    };
+    
+    const handleFocus = () => {
+      // Aguardar um pouco para o teclado começar a abrir
+      setTimeout(scrollInputIntoView, 100);
+      setTimeout(scrollInputIntoView, 300);
+    };
+
+    // Usar Visual Viewport API se disponível (melhor para detectar teclado)
+    const handleViewportResize = () => {
+      if (textarea === document.activeElement) {
+        scrollInputIntoView();
+      }
+    };
+
+    // Fallback para resize normal
+    const handleResize = () => {
+      if (textarea === document.activeElement) {
+        setTimeout(scrollInputIntoView, 100);
+      }
+    };
+
+    textarea.addEventListener('focus', handleFocus);
+    
+    // Visual Viewport API (mais preciso para teclado mobile)
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', handleViewportResize);
+    }
+    
+    // Fallback para navegadores sem suporte
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      textarea.removeEventListener('focus', handleFocus);
+      if (window.visualViewport) {
+        window.visualViewport.removeEventListener('resize', handleViewportResize);
+      }
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [isMobile]);
+
   const adjustHeight = () => {
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
