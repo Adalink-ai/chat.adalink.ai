@@ -11,6 +11,7 @@ export type UserType = 'guest' | 'regular';
 
 declare module 'next-auth' {
   interface Session extends DefaultSession {
+    accessToken?: string;
     user: {
       id: string;
       type: UserType;
@@ -21,13 +22,15 @@ declare module 'next-auth' {
     id?: string;
     email?: string | null;
     type: UserType;
+    accessToken?: string;
   }
 }
 
 declare module 'next-auth/jwt' {
   interface JWT extends DefaultJWT {
-    id: string;
-    type: UserType;
+    id?: string;
+    type?: UserType;
+    accessToken?: string;
   }
 }
 
@@ -77,12 +80,14 @@ export const {
       name: 'SSO',
       credentials: {
         email: { label: "Email", type: "email" },
-        userId: { label: "User ID", type: "text" }
+        userId: { label: "User ID", type: "text" },
+        accessToken: { label: "Access Token", type: "text" }
       },
       async authorize(credentials) {
         // Provider SSO - apenas valida que o usuário existe
         const email = credentials.email as string;
         const userId = credentials.userId as string;
+        const accessToken = credentials.accessToken as string;
         
         if (!email || !userId) {
           return null;
@@ -95,7 +100,7 @@ export const {
         }
 
         const [user] = users;
-        return { ...user, type: 'regular' };
+        return { ...user, type: 'regular', accessToken };
       },
     }),
     Credentials({
@@ -112,14 +117,30 @@ export const {
       if (user) {
         token.id = user.id as string;
         token.type = user.type;
+        if (user.accessToken) {
+          token.accessToken = user.accessToken;
+          console.log('[Auth] AccessToken armazenado no JWT ✓');
+          console.log('[Auth] AccessToken (primeiros 20 chars):', user.accessToken.substring(0, 20) + '...');
+        } else {
+          console.warn('[Auth] ⚠️ User não tem accessToken');
+          console.log('[Auth] User object:', { id: user.id, email: (user as any).email, type: user.type });
+        }
       }
 
       return token;
     },
     async session({ session, token }) {
-      if (session.user) {
+      if (session.user && token.id && token.type) {
         session.user.id = token.id;
         session.user.type = token.type;
+      }
+      if (token.accessToken) {
+        session.accessToken = token.accessToken;
+        console.log('[Auth] AccessToken incluído na sessão ✓');
+        console.log('[Auth] AccessToken na sessão (primeiros 20 chars):', token.accessToken.substring(0, 20) + '...');
+      } else {
+        console.warn('[Auth] ⚠️ Token JWT não tem accessToken');
+        console.log('[Auth] Token object keys:', Object.keys(token));
       }
 
       return session;
