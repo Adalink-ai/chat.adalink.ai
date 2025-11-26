@@ -5,7 +5,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import Image from 'next/image';
 import { SidebarHistory } from '@/components/sidebar-history';
 import { Button } from '@/components/ui/button';
-import { Home, Compass, Layers, TrendingUp, Plus, LogIn, ChevronLeft, ChevronRight, Moon, Sun, LogOut } from 'lucide-react';
+import { Home, Compass, Layers, TrendingUp, Plus, LogIn, ChevronLeft, ChevronRight, Moon, Sun, LogOut, House } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from 'next-themes';
@@ -24,6 +24,7 @@ const navigationItems = [
   { id: 'discover', icon: Compass, label: 'Descobrir', path: '/discover' },
   { id: 'spaces', icon: Layers, label: 'Espaços', path: '/spaces' },
   { id: 'finance', icon: TrendingUp, label: 'Finanças', path: '/finance' },
+  { id: 'workflow', icon: House, label: 'Workflow', path: 'https://v2.adalink.ai/', external: true },
 ];
 
 export function AppSidebar({ user }: { user: User | undefined }) {
@@ -51,12 +52,20 @@ export function AppSidebar({ user }: { user: User | undefined }) {
     };
   }, [isCollapsed]);
 
-  const handleNavClick = (itemId: string, path: string) => {
+  const handleNavClick = (itemId: string, path: string, isExternal?: boolean) => {
     if (isCollapsed) {
       setIsCollapsed(false);
     }
+    
+    if (isExternal && path) {
+      window.open(path, '_blank', 'noopener,noreferrer');
+      return;
+    }
+    
     setActivePanel(activePanel === itemId ? null : itemId);
-    if (path) router.push(path);
+    if (path) {
+      router.push(path);
+    }
   };
 
   const toggleCollapse = () => {
@@ -237,11 +246,12 @@ export function AppSidebar({ user }: { user: User | undefined }) {
           {navigationItems.map((item) => {
             const Icon = item.icon;
             const isActive = activePanel === item.id;
+            const isExternal = 'external' in item && item.external;
             
             return (
               <button
                 key={item.id}
-                onClick={() => handleNavClick(item.id, item.path)}
+                onClick={() => handleNavClick(item.id, item.path, isExternal)}
                 className={`
                   flex flex-col items-center gap-1 py-3 px-2 rounded-lg
                   transition-all duration-200
@@ -380,6 +390,7 @@ export function AppSidebar({ user }: { user: User | undefined }) {
                     ))}
                   </div>
                 )}
+
               </div>
             </div>
           </motion.div>
