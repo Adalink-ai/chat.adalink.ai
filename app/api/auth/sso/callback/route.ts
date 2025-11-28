@@ -37,6 +37,12 @@ export async function GET(request: NextRequest) {
     }
 
     console.log('[SSO] Token válido para:', ssoData.email);
+    console.log('[SSO] AccessToken presente no JWT:', !!ssoData.accessToken);
+    if (ssoData.accessToken) {
+      console.log('[SSO] AccessToken (primeiros 20 chars):', ssoData.accessToken.substring(0, 20) + '...');
+    } else {
+      console.warn('[SSO] ⚠️ AccessToken NÃO foi enviado pelo front-adalink!');
+    }
 
     // Sincronizar usuário no banco local
     const user = await syncSSOUser(ssoData);
@@ -54,6 +60,7 @@ export async function GET(request: NextRequest) {
       await signIn('sso', {
         email: user.email,
         userId: user.id,
+        accessToken: ssoData.accessToken || '',
         redirectTo: redirectTo,
       });
       
