@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { SidebarHistory } from '@/components/sidebar-history';
 import { SidebarSpecialists } from '@/components/sidebar-specialists';
 import { Button } from '@/components/ui/button';
-import { Home, Compass, Layers, TrendingUp, Plus, LogIn, ChevronLeft, ChevronRight, Moon, Sun, LogOut, Bot } from 'lucide-react';
+import { Home, Compass, Layers, TrendingUp, Plus, LogIn, ChevronLeft, ChevronRight, Moon, Sun, LogOut, House, Bot, UndoDot, UndoDotIcon } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from 'next-themes';
@@ -26,6 +26,7 @@ const navigationItems = [
   { id: 'discover', icon: Compass, label: 'Descobrir', path: '/discover' },
   { id: 'spaces', icon: Layers, label: 'Espaços', path: '/spaces' },
   { id: 'finance', icon: TrendingUp, label: 'Finanças', path: '/finance' },
+  { id: 'workflow', icon: UndoDotIcon, label: 'Workflow', path: 'https://v2.adalink.ai/', external: true },
 ];
 
 export function AppSidebar({ user }: { user: User | undefined }) {
@@ -54,12 +55,20 @@ export function AppSidebar({ user }: { user: User | undefined }) {
     };
   }, [isCollapsed]);
 
-  const handleNavClick = (itemId: string, path: string | null) => {
+  const handleNavClick = (itemId: string, path: string | null, isExternal?: boolean) => {
     if (isCollapsed) {
       setIsCollapsed(false);
     }
+    
+    if (isExternal && path) {
+      window.open(path, '_blank', 'noopener,noreferrer');
+      return;
+    }
+    
     setActivePanel(activePanel === itemId ? null : itemId);
-    if (path) router.push(path);
+    if (path) {
+      router.push(path);
+    }
   };
 
   const toggleCollapse = () => {
@@ -94,6 +103,17 @@ export function AppSidebar({ user }: { user: User | undefined }) {
 
         {/* Botões direita */}
         <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => {
+              window.open('https://v2.adalink.ai/', '_blank', 'noopener,noreferrer');
+            }}
+            className="size-10 text-white hover:bg-white/10 rounded-full"
+          >
+            <UndoDotIcon className="size-6" />
+          </Button>
+
           {/* Botão Nova Conversa */}
           <Button
             variant="ghost"
@@ -267,11 +287,12 @@ export function AppSidebar({ user }: { user: User | undefined }) {
           {navigationItems.map((item) => {
             const Icon = item.icon;
             const isActive = activePanel === item.id;
+            const isExternal = 'external' in item && item.external;
             
             return (
               <button
                 key={item.id}
-                onClick={() => handleNavClick(item.id, item.path)}
+                onClick={() => handleNavClick(item.id, item.path, isExternal)}
                 className={`
                   flex flex-col items-center gap-1 py-3 px-2 rounded-lg
                   transition-all duration-200
@@ -414,6 +435,7 @@ export function AppSidebar({ user }: { user: User | undefined }) {
                     ))}
                   </div>
                 )}
+
               </div>
             </div>
           </motion.div>
