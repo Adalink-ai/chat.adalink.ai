@@ -55,7 +55,7 @@ export function AppSidebar({ user }: { user: User | undefined }) {
     };
   }, [isCollapsed]);
 
-  const handleNavClick = (itemId: string, path: string, isExternal?: boolean) => {
+  const handleNavClick = (itemId: string, path: string | null, isExternal?: boolean) => {
     if (isCollapsed) {
       setIsCollapsed(false);
     }
