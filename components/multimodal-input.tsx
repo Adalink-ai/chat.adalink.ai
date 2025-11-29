@@ -15,12 +15,24 @@ import {
 import { toast } from 'sonner';
 import { useLocalStorage, useWindowSize } from 'usehooks-ts';
 
-import { SendIcon, StopIcon, ChevronDownIcon } from './icons';
+import {
+  SendIcon,
+  StopIcon,
+  ChevronDownIcon,
+  IntegrationsIcon,
+  PaperclipIcon,
+} from './icons';
 import { PreviewAttachment } from './preview-attachment';
+import { ConnectorsModal } from './connectors-modal';
 import { Button } from './ui/button';
 import { Textarea } from './ui/textarea';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from './ui/dropdown-menu';
 import { SuggestedActions } from './suggested-actions';
-import { ActionButtons } from './action-buttons';
 import equal from 'fast-deep-equal';
 import type { UseChatHelpers } from '@ai-sdk/react';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -55,6 +67,7 @@ function PureMultimodalInput({
   const { width } = useWindowSize();
   const [interimTranscript, setInterimTranscript] = useState('');
   const [isMobile, setIsMobile] = useState(false);
+  const [showConnectorsModal, setShowConnectorsModal] = useState(false);
 
   useEffect(() => {
     if (textareaRef.current) {
@@ -62,11 +75,11 @@ function PureMultimodalInput({
     }
     // Detectar mobile
     setIsMobile(window.innerWidth < 768);
-    
+
     const handleResize = () => {
       setIsMobile(window.innerWidth < 768);
     };
-    
+
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
@@ -386,10 +399,10 @@ function PureMultimodalInput({
           <Textarea
             data-testid="multimodal-input"
             ref={textareaRef}
-            placeholder={isMobile ? "Como posso ajudar?" : "Como posso ajudar?"}
+            placeholder={isMobile ? 'Como posso ajudar?' : 'Como posso ajudar?'}
             value={displayValue}
             onChange={handleInput}
-className={`pr-12 py-3 px-4 text-base border rounded-2xl transition-all duration-200 resize-none min-h-[52px] max-h-[52px] font-light
+            className={`pl-12 pr-12 py-3 px-4 text-base border rounded-2xl transition-all duration-200 resize-none min-h-[52px] max-h-[52px] font-light
   border-zinc-200 dark:border-white/10
   bg-white dark:bg-[#111315]
   text-zinc-900 dark:text-white
@@ -420,6 +433,44 @@ className={`pr-12 py-3 px-4 text-base border rounded-2xl transition-all duration
             }}
           />
 
+          {/* Dropdown button - inside input on the left */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                className="absolute left-3 top-1/2 -translate-y-1/2 size-8 p-0 text-zinc-500 dark:text-white/50 hover:text-[#8F5BFF] hover:bg-transparent"
+                type="button"
+                variant="ghost"
+                size="icon"
+                disabled={status === 'submitted'}
+                title="Anexar"
+              >
+                <PaperclipIcon size={16} />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-48">
+              <DropdownMenuItem
+                onClick={(e) => {
+                  e.preventDefault();
+                  fileInputRef.current?.click();
+                }}
+                className="cursor-pointer"
+              >
+                <PaperclipIcon size={16} />
+                <span>Arquivos</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={(e) => {
+                  e.preventDefault();
+                  setShowConnectorsModal(true);
+                }}
+                className="cursor-pointer"
+              >
+                <IntegrationsIcon size={16} />
+                <span>Conectores</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
           {/* Indicador de gravação */}
           {isListening && (
             <div className="absolute right-14 top-1/2 -translate-y-1/2 flex items-center gap-2 text-red-500 text-xs">
@@ -427,7 +478,7 @@ className={`pr-12 py-3 px-4 text-base border rounded-2xl transition-all duration
             </div>
           )}
 
-          {/* Botão de ação (Enviar ou Microfone) */}
+          {/* Botão de ação (Enviar ou Microfone) - inside input on the right */}
           {status === 'submitted' ? (
             <Button
               data-testid="stop-button"
@@ -464,14 +515,30 @@ className={`pr-12 py-3 px-4 text-base border rounded-2xl transition-all duration
                 className="absolute right-3 top-1/2 -translate-y-1/2 size-8 text-zinc-500 dark:text-white/50 hover:text-[#8F5BFF] hover:bg-transparent p-0"
                 title="Gravar áudio"
               >
-                <svg className="size-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                <svg
+                  className="size-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"
+                  />
                 </svg>
               </Button>
             )
           )}
         </div>
       </div>
+
+      {/* Connectors Modal */}
+      <ConnectorsModal
+        open={showConnectorsModal}
+        onOpenChange={setShowConnectorsModal}
+      />
     </div>
   );
 }
