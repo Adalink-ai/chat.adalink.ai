@@ -6,7 +6,7 @@ import { MAX_FILE_SIZE, MAX_FILES } from '../config/constants';
 import { useJobPolling } from './use-job-polling';
 import { uploadFileToS3 } from '../lib/upload-file';
 
-export function useFileUpload() {
+export function useFileUpload(selectedChatModel?: string) {
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
@@ -124,6 +124,7 @@ export function useFileUpload() {
         const success = await uploadFileToS3({
           file,
           pollForResult,
+          selectedChatModel,
         });
 
         if (success) {

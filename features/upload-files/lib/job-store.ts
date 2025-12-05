@@ -5,19 +5,37 @@ import type { Job } from '../model/types';
 /**
  * In-memory job store
  * In production, replace with Redis or database
+ * 
+ * Using globalThis to persist across hot reloads in development
  */
-const jobStore = new Map<string, Job>();
+declare global {
+  // eslint-disable-next-line no-var
+  var __jobStore: Map<string, Job> | undefined;
+}
+
+const getJobStore = (): Map<string, Job> => {
+  if (!global.__jobStore) {
+    console.log('[JOB STORE] 🆕 Initializing new job store');
+    global.__jobStore = new Map<string, Job>();
+  } else {
+    console.log('[JOB STORE] ♻️ Using existing job store, size:', global.__jobStore.size);
+  }
+  return global.__jobStore;
+};
 
 /**
  * Get job by ID
  */
 export function getJob(jobId: string): Job | undefined {
-  const job = jobStore.get(jobId);
+  // Ensure we're using the global store
+  const store = getJobStore();
+  const job = store.get(jobId);
   console.log('[JOB STORE] 🔍 Getting job:', {
     jobId,
     found: !!job,
-    storeSize: jobStore.size,
-    availableJobIds: Array.from(jobStore.keys()),
+    storeSize: store.size,
+    availableJobIds: Array.from(store.keys()),
+    isGlobalStore: store === global.__jobStore,
   });
   return job;
 }
@@ -26,32 +44,46 @@ export function getJob(jobId: string): Job | undefined {
  * Create or update job
  */
 export function setJob(job: Job): void {
+  // Ensure we're using the global store
+  const store = getJobStore();
   console.log('[JOB STORE] 📝 Setting job:', {
     jobId: job.id,
     status: job.status,
-    storeSize: jobStore.size,
+    storeSize: store.size,
+    isGlobalStore: store === global.__jobStore,
   });
-  jobStore.set(job.id, job);
-  console.log('[JOB STORE] ✅ Job set, new store size:', jobStore.size);
+  store.set(job.id, job);
+  console.log('[JOB STORE] ✅ Job set, new store size:', store.size);
+  
+  // Verify the job was actually stored
+  const verify = store.get(job.id);
+  if (!verify) {
+    console.error('[JOB STORE] ❌ Job was not stored correctly!');
+  } else {
+    console.log('[JOB STORE] ✅ Job verified in store');
+  }
 }
 
 /**
  * Update job fields
  */
 export function updateJob(jobId: string, updates: Partial<Job>): void {
+  // Ensure we're using the global store
+  const store = getJobStore();
   console.log('[JOB STORE] 🔄 Updating job:', {
     jobId,
     updates,
-    storeSize: jobStore.size,
-    existingJobIds: Array.from(jobStore.keys()),
+    storeSize: store.size,
+    existingJobIds: Array.from(store.keys()),
+    isGlobalStore: store === global.__jobStore,
   });
 
-  const existingJob = jobStore.get(jobId);
+  const existingJob = store.get(jobId);
   if (!existingJob) {
     console.error('[JOB STORE] ❌ Job not found for update:', {
       jobId,
-      availableJobs: Array.from(jobStore.keys()),
-      storeSize: jobStore.size,
+      availableJobs: Array.from(store.keys()),
+      storeSize: store.size,
     });
     throw new Error(`Job ${jobId} not found`);
   }
@@ -62,11 +94,11 @@ export function updateJob(jobId: string, updates: Partial<Job>): void {
     updatedAt: new Date().toISOString(),
   };
 
-  jobStore.set(jobId, updatedJob);
+  store.set(jobId, updatedJob);
   console.log('[JOB STORE] ✅ Job updated:', {
     jobId,
     newStatus: updatedJob.status,
-    storeSize: jobStore.size,
+    storeSize: store.size,
   });
 }
 
@@ -74,16 +106,18 @@ export function updateJob(jobId: string, updates: Partial<Job>): void {
  * Delete job
  */
 export function deleteJob(jobId: string): void {
-  jobStore.delete(jobId);
+  const store = getJobStore();
+  store.delete(jobId);
 }
 
 /**
  * Get all jobs (for debugging)
  */
 export function getAllJobs(): Job[] {
-  return Array.from(jobStore.values());
+  const store = getJobStore();
+  return Array.from(store.values());
 }
 
-// Export jobStore for direct access if needed
-export { jobStore };
+// Export getJobStore for direct access if needed
+export { getJobStore };
 

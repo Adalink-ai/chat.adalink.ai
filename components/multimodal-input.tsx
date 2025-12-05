@@ -39,6 +39,7 @@ function PureMultimodalInput({
   messages,
   setMessages,
   sendMessage,
+  selectedChatModel,
 }: {
   chatId: string;
   input: string;
@@ -50,6 +51,7 @@ function PureMultimodalInput({
   messages: Array<UIMessage>;
   setMessages: UseChatHelpers<ChatMessage>['setMessages'];
   sendMessage: UseChatHelpers<ChatMessage>['sendMessage'];
+  selectedChatModel?: string;
 }) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { width } = useWindowSize();
@@ -316,6 +318,7 @@ function PureMultimodalInput({
         <div className="flex-1 relative">
           <UploadButton
             disabled={status !== 'ready'}
+            selectedChatModel={selectedChatModel}
           />
           <Textarea
             data-testid="multimodal-input"

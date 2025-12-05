@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { randomUUID } from 'crypto';
 import { auth } from '@/app/(auth)/auth';
+import { isDevelopmentEnvironment } from '@/lib/constants';
 import {
   getPresignedUrlToUpload,
   getPublicUrl,
@@ -12,11 +13,13 @@ import {
 } from '@/features/upload-files/server';
 import { setJob } from '@/features/upload-files/lib/job-store';
 import type { Job } from '@/features/upload-files/model/types';
+import { extractModelInfo } from '@/features/upload-files/lib/model-info';
 
 interface UploadRequest {
   fileName: string;
   fileSize: number;
   fileType: string;
+  selectedChatModel?: string;
 }
 
 export async function POST(request: Request) {
@@ -43,6 +46,7 @@ export async function POST(request: Request) {
       fileName: body.fileName,
       fileSize: body.fileSize,
       fileType: body.fileType,
+      selectedChatModel: body.selectedChatModel,
     });
 
     if (!body.fileName || !body.fileSize || !body.fileType) {
@@ -91,8 +95,13 @@ export async function POST(request: Request) {
     const workerUrl =
       process.env.CLOUDFLARE_WORKER_URL ||
       'https://adalink-upload-worker.adalink.workers.dev';
-    console.log('[UPLOAD API] 👷 Worker URL:', `${workerUrl}/upload`);
+    if (isDevelopmentEnvironment) {
+      console.log('[UPLOAD API] 👷 Worker URL:', `${workerUrl}/upload`);
+    }
 
+    // Extract model info if provided
+    const modelInfo = body.selectedChatModel ? extractModelInfo(body.selectedChatModel) : null;
+    
     // Create initial job in store
     const initialJob: Job = {
       id: jobId,
@@ -106,6 +115,12 @@ export async function POST(request: Request) {
         originalFileName: body.fileName,
         s3Key: key,
         userId: session.user.id,
+        ...(modelInfo && {
+          selectedChatModel: body.selectedChatModel,
+          modelProvider: modelInfo.provider,
+          modelName: modelInfo.model,
+          isInternalModel: modelInfo.isInternal,
+        }),
       },
     };
 

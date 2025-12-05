@@ -7,9 +7,10 @@ import { UploadModal } from '@/features/upload-files';
 
 interface UploadButtonProps {
   disabled?: boolean;
+  selectedChatModel?: string;
 }
 
-export function UploadButton({  disabled = false }: UploadButtonProps) {
+export function UploadButton({  disabled = false, selectedChatModel }: UploadButtonProps) {
 
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
 
@@ -37,6 +38,7 @@ export function UploadButton({  disabled = false }: UploadButtonProps) {
     <UploadModal
       open={isUploadModalOpen}
       onClose={() => setIsUploadModalOpen(false)}
+      selectedChatModel={selectedChatModel}
     />
     </>
   );

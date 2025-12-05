@@ -10,9 +10,10 @@ import { MAX_FILES } from '../config/constants';
 interface UploadModalProps {
   open: boolean;
   onClose: () => void;
+  selectedChatModel?: string;
 }
 
-export function UploadModal({ open, onClose }: UploadModalProps) {
+export function UploadModal({ open, onClose, selectedChatModel }: UploadModalProps) {
   const {
     selectedFiles,
     isUploading,
@@ -25,7 +26,7 @@ export function UploadModal({ open, onClose }: UploadModalProps) {
     handleRemoveFile,
     handleUpload,
     clearFiles,
-  } = useFileUpload();
+  } = useFileUpload(selectedChatModel);
 
   const handleOpenChange = (newOpen: boolean) => {
     // Only handle close (when newOpen is false)

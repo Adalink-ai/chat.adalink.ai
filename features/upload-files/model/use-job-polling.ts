@@ -4,8 +4,12 @@ import { useRef, useCallback } from 'react';
 import { toast } from 'sonner';
 import { POLL_INTERVAL, MAX_POLL_ATTEMPTS } from '../config/constants';
 import type { Job } from './types';
+import { useSetAtom } from 'jotai';
+import { addJobAtom } from './atoms';
 
 export function useJobPolling() {
+
+  const addJob = useSetAtom(addJobAtom);
   const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const pollForResult = useCallback(
@@ -111,7 +115,7 @@ export function useJobPolling() {
               result: job.result,
             });
 
-            toast.dismiss('upload-progress');
+             toast.dismiss('upload-progress');
             toast.success('Upload concluído!', {
               description: 'Arquivo processado com sucesso',
             });
@@ -120,6 +124,10 @@ export function useJobPolling() {
               clearInterval(pollIntervalRef.current);
               pollIntervalRef.current = null;
             }
+
+            // Somehow store the result in a state
+            addJob(job);
+            
             return;
           } else if (job.status === 'error') {
             const totalDuration = Date.now() - pollingStartTime;

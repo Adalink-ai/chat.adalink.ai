@@ -22,6 +22,8 @@ import { ChatSDKError } from '@/lib/errors';
 import type { Attachment, ChatMessage } from '@/lib/types';
 import { useSidebarContext } from './sidebar-context';
 import { useDataStream } from './data-stream-provider';
+import { useAtomValue } from 'jotai';
+import { uploadFileJobResultAtom } from '@/features/upload-files/model/atoms';
 
 export function Chat({
   id,
@@ -38,6 +40,8 @@ export function Chat({
   session: Session;
   autoResume: boolean;
 }) {
+
+  const uploadFileJobResult = useAtomValue(uploadFileJobResultAtom);
   const { mutate } = useSWRConfig();
   const { setDataStream } = useDataStream();
   const { isCollapsed, activePanel } = useSidebarContext();
@@ -160,6 +164,7 @@ export function Chat({
     >
       <div className="flex-1 flex flex-col">
         <div className="flex-1 flex flex-col md:rounded-lg overflow-hidden bg-background border-0 md:border md:border-zinc-200/50 md:dark:border-zinc-800/30">
+        {JSON.stringify(uploadFileJobResult)}
           <BorderAnimation showAnimation={true} />
           <ChatHeader
             selectedModelId={initialChatModel}
@@ -200,6 +205,7 @@ export function Chat({
                   messages={messages}
                   setMessages={setMessages}
                   sendMessage={sendMessage}
+                  selectedChatModel={selectedChatModel}
                 />
               </div>
             </div>
