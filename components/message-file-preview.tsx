@@ -2,6 +2,8 @@
 
 import { motion } from 'framer-motion';
 import type { FileUIPart } from 'ai';
+import { FileIcon, ImageIcon } from './icons';
+import { cn } from '@/lib/utils';
 
 function formatFileSize(bytes: number): string {
   if (bytes === 0) return '0 B';
@@ -17,6 +19,12 @@ function getFileIcon(mediaType: string): string {
   }
   if (mediaType === 'application/pdf') {
     return '📄';
+  }
+  if (mediaType.startsWith('video/')) {
+    return '🎥';
+  }
+  if (mediaType.startsWith('audio/')) {
+    return '🎵';
   }
   if (mediaType.includes('text') || mediaType.includes('document')) {
     return '📝';
@@ -34,6 +42,12 @@ function getFileTypeLabel(mediaType: string): string {
   if (mediaType === 'application/pdf') {
     return 'PDF';
   }
+  if (mediaType.startsWith('video/')) {
+    return 'Vídeo';
+  }
+  if (mediaType.startsWith('audio/')) {
+    return 'Áudio';
+  }
   if (mediaType.includes('text')) {
     return 'Texto';
   }
@@ -48,9 +62,10 @@ function getFileTypeLabel(mediaType: string): string {
 
 interface MessageFilePreviewProps {
   fileParts: FileUIPart[];
+  isUserMessage?: boolean;
 }
 
-export function MessageFilePreview({ fileParts }: MessageFilePreviewProps) {
+export function MessageFilePreview({ fileParts, isUserMessage = false }: MessageFilePreviewProps) {
   // Debug: Verificar file parts recebidos
   if (process.env.NODE_ENV === 'development' && fileParts.length > 0) {
     console.log('[DEBUG] MessageFilePreview - Received file parts:', {
@@ -69,19 +84,30 @@ export function MessageFilePreview({ fileParts }: MessageFilePreviewProps) {
   }
 
   return (
-    <div className="flex flex-row gap-2 flex-wrap">
+    <div className={cn("flex flex-row gap-2 flex-wrap", {
+      "justify-end": isUserMessage,
+      "justify-start": !isUserMessage,
+    })}>
       {fileParts.map((filePart, index) => {
         const filename = filePart.filename || (filePart as any).name || 'arquivo';
         const mediaType = filePart.mediaType || 'application/octet-stream';
         const url = filePart.url;
+        const isImage = mediaType.startsWith('image/');
+        const isVideo = mediaType.startsWith('video/');
+        const isAudio = mediaType.startsWith('audio/');
+        const isPDF = mediaType === 'application/pdf';
 
         return (
-          <motion.div
+          <motion.a
             key={`${url}-${index}`}
+            href={url}
+            target="_blank"
+            rel="noopener noreferrer"
             initial={{ opacity: 0, scale: 0.9, y: 5 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.9, y: -10 }}
             transition={{ duration: 0.2, delay: index * 0.05 }}
-            className="group relative bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg p-2.5 shadow-sm hover:shadow-md transition-all duration-200 max-w-[200px] min-w-[160px]"
+            className="group relative bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg p-2.5 shadow-sm hover:shadow-md transition-all duration-200 max-w-[200px] min-w-[160px] flex flex-col"
           >
             <div className="flex items-start gap-2.5">
               <div className="flex-shrink-0 text-xl">
@@ -99,17 +125,60 @@ export function MessageFilePreview({ fileParts }: MessageFilePreviewProps) {
                 </p>
               </div>
             </div>
-            {mediaType.startsWith('image/') && url && (
+            
+            {/* Preview de imagem */}
+            {isImage && url && (
               <div className="mt-2 rounded overflow-hidden border border-zinc-200 dark:border-zinc-700">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={url}
                   alt={filename}
                   className="w-full h-auto max-h-32 object-cover"
+                  onError={(e) => {
+                    // Fallback se a imagem não carregar
+                    e.currentTarget.style.display = 'none';
+                  }}
                 />
               </div>
             )}
-          </motion.div>
+
+            {/* Preview de vídeo */}
+            {isVideo && url && (
+              <div className="mt-2 rounded overflow-hidden border border-zinc-200 dark:border-zinc-700">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <video
+                  src={url}
+                  className="w-full h-auto max-h-32 object-cover"
+                  controls={false}
+                  preload="metadata"
+                >
+                  Seu navegador não suporta vídeo.
+                </video>
+              </div>
+            )}
+
+            {/* Preview de áudio */}
+            {isAudio && url && (
+              <div className="mt-2">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <audio
+                  src={url}
+                  controls
+                  className="w-full"
+                  preload="metadata"
+                >
+                  Seu navegador não suporta áudio.
+                </audio>
+              </div>
+            )}
+
+            {/* Indicador para PDF */}
+            {isPDF && (
+              <div className="mt-2 text-center text-xs text-zinc-500 dark:text-zinc-400">
+                Clique para abrir PDF
+              </div>
+            )}
+          </motion.a>
         );
       })}
     </div>

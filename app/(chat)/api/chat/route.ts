@@ -230,9 +230,6 @@ export async function POST(request: Request) {
       createdAt: new Date(),
     };
 
-    // #region agent log
-    fetch('http://127.0.0.1:7245/ingest/fef0a2ad-c472-472c-9197-55b6ecf92e4c',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app/(chat)/api/chat/route.ts:223',message:'Before saveMessages - message data',data:{chatId:messageToSave.chatId,messageId:messageToSave.id,role:messageToSave.role,parts:messageToSave.parts,partsType:typeof messageToSave.parts,partsIsArray:Array.isArray(messageToSave.parts),partsLength:Array.isArray(messageToSave.parts)?messageToSave.parts.length:'N/A',attachments:messageToSave.attachments,attachmentsType:typeof messageToSave.attachments,attachmentsIsArray:Array.isArray(messageToSave.attachments),createdAt:messageToSave.createdAt instanceof Date?messageToSave.createdAt.toISOString():String(messageToSave.createdAt),createdAtType:typeof messageToSave.createdAt,createdAtIsDate:messageToSave.createdAt instanceof Date},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B,C,D,E'})}).catch(()=>{});
-    // #endregion agent log
 
     await Promise.all([
       saveMessages({
@@ -346,21 +343,12 @@ export async function POST(request: Request) {
           chatId: id,
         }));
 
-        // #region agent log
-        fetch('http://127.0.0.1:7245/ingest/fef0a2ad-c472-472c-9197-55b6ecf92e4c',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app/(chat)/api/chat/route.ts:332',message:'onFinish - Before saveMessages',data:{chatId:id,messagesCount:messagesToSave.length,messages:messagesToSave.map(m=>({id:m.id,role:m.role,partsType:typeof m.parts,partsIsArray:Array.isArray(m.parts),partsLength:Array.isArray(m.parts)?m.parts.length:'N/A',attachmentsType:typeof m.attachments,attachmentsIsArray:Array.isArray(m.attachments),createdAtType:typeof m.createdAt,createdAtIsDate:m.createdAt instanceof Date})),chatIds:[...new Set(messagesToSave.map(m=>m.chatId))]},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A,B,C,D,E'})}).catch(()=>{});
-        // #endregion agent log
 
         try {
           await saveMessages({
             messages: messagesToSave,
           });
-          // #region agent log
-          fetch('http://127.0.0.1:7245/ingest/fef0a2ad-c472-472c-9197-55b6ecf92e4c',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app/(chat)/api/chat/route.ts:353',message:'onFinish - saveMessages success',data:{chatId:id,messagesCount:messagesToSave.length},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A,B,C,D,E'})}).catch(()=>{});
-          // #endregion agent log
         } catch (error) {
-          // #region agent log
-          fetch('http://127.0.0.1:7245/ingest/fef0a2ad-c472-472c-9197-55b6ecf92e4c',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'app/(chat)/api/chat/route.ts:360',message:'onFinish - saveMessages error',data:{chatId:id,errorMessage:error instanceof Error?error.message:String(error),errorName:error instanceof Error?error.name:typeof error,errorStack:error instanceof Error?error.stack?.substring(0,500):undefined,errorCode:(error as any)?.code,errorDetail:(error as any)?.detail,messagesCount:messagesToSave.length},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A,B,C,D,E'})}).catch(()=>{});
-          // #endregion agent log
           console.error('[ERROR] Failed to save messages in onFinish:', error);
           // Re-throw to let the error propagate
           throw error;

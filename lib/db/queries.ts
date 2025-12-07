@@ -252,32 +252,17 @@ export async function saveMessages({
 }: {
   messages: Array<DBMessage>;
 }) {
-  // #region agent log
-  fetch('http://127.0.0.1:7245/ingest/fef0a2ad-c472-472c-9197-55b6ecf92e4c',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'lib/db/queries.ts:250',message:'saveMessages entry',data:{messagesCount:messages.length,messages:messages.map(m=>({id:m.id,chatId:m.chatId,role:m.role,partsType:typeof m.parts,partsIsArray:Array.isArray(m.parts),partsLength:Array.isArray(m.parts)?m.parts.length:'N/A',attachmentsType:typeof m.attachments,attachmentsIsArray:Array.isArray(m.attachments),attachmentsLength:Array.isArray(m.attachments)?m.attachments.length:'N/A',createdAtType:typeof m.createdAt,createdAtValue:m.createdAt instanceof Date?m.createdAt.toISOString():String(m.createdAt)})),chatIds:[...new Set(messages.map(m=>m.chatId))]},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A,B,C,D,E'})}).catch(()=>{});
-  // #endregion agent log
 
-  // #region agent log
-  fetch('http://127.0.0.1:7245/ingest/fef0a2ad-c472-472c-9197-55b6ecf92e4c',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'lib/db/queries.ts:256',message:'Before db.insert - checking chat existence',data:{chatIds:[...new Set(messages.map(m=>m.chatId))],willCheckChats:true},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-  // #endregion agent log
 
   // Check if chats exist before insert (Hypothesis A)
   const chatIds = [...new Set(messages.map(m => m.chatId))];
   for (const chatId of chatIds) {
     try {
       const chatExists = await db.select().from(chat).where(eq(chat.id, chatId)).limit(1);
-      // #region agent log
-      fetch('http://127.0.0.1:7245/ingest/fef0a2ad-c472-472c-9197-55b6ecf92e4c',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'lib/db/queries.ts:check-chat',message:'Chat existence check',data:{chatId,exists:chatExists.length>0,foundCount:chatExists.length},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-      // #endregion agent log
     } catch (checkError) {
-      // #region agent log
-      fetch('http://127.0.0.1:7245/ingest/fef0a2ad-c472-472c-9197-55b6ecf92e4c',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'lib/db/queries.ts:check-chat-error',message:'Chat check failed',data:{chatId,error:checkError instanceof Error?checkError.message:String(checkError)},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-      // #endregion agent log
     }
   }
 
-  // #region agent log
-  fetch('http://127.0.0.1:7245/ingest/fef0a2ad-c472-472c-9197-55b6ecf92e4c',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'lib/db/queries.ts:256',message:'Before db.insert - serialized data',data:{messages:messages.map(m=>({id:m.id,chatId:m.chatId,role:m.role,partsJSON:JSON.stringify(m.parts),attachmentsJSON:JSON.stringify(m.attachments),createdAt:m.createdAt instanceof Date?m.createdAt.toISOString():String(m.createdAt),createdAtRawType:typeof m.createdAt}))},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B,C'})}).catch(()=>{});
-  // #endregion agent log
 
   try {
     const result = await db.insert(message).values(messages);
@@ -312,15 +297,9 @@ export async function saveMessages({
       });
     }
 
-    // #region agent log
-    fetch('http://127.0.0.1:7245/ingest/fef0a2ad-c472-472c-9197-55b6ecf92e4c',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'lib/db/queries.ts:288',message:'saveMessages success',data:{insertedCount:messages.length},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A,B,C,D,E'})}).catch(()=>{});
-    // #endregion agent log
 
     return result;
   } catch (error) {
-    // #region agent log
-    fetch('http://127.0.0.1:7245/ingest/fef0a2ad-c472-472c-9197-55b6ecf92e4c',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'lib/db/queries.ts:290',message:'saveMessages error caught',data:{errorMessage:error instanceof Error?error.message:String(error),errorName:error instanceof Error?error.name:typeof error,errorStack:error instanceof Error?error.stack?.substring(0,500):undefined,errorCode:(error as any)?.code,errorDetail:(error as any)?.detail,errorConstraint:(error as any)?.constraint,errorTable:(error as any)?.table,errorColumn:(error as any)?.column,postgresError:(error as any)?.severity,messages:messages.map(m=>({id:m.id,chatId:m.chatId,role:m.role}))},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A,B,C,D,E'})}).catch(()=>{});
-    // #endregion agent log
     throw new ChatSDKError('bad_request:database', 'Failed to save messages');
   }
 }

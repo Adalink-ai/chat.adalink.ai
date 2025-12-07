@@ -7,6 +7,8 @@ import { PencilEditIcon, SparklesIcon } from './icons';
 import { Markdown } from './markdown';
 import { MessageActions } from './message-actions';
 import { MessageFilePreview } from './message-file-preview';
+import { MessageToolCall } from './message-tool-call';
+import { MessageStepBoundary } from './message-step-boundary';
 import { Weather } from './weather';
 import equal from 'fast-deep-equal';
 import { cn, sanitizeText } from '@/lib/utils';
@@ -120,7 +122,7 @@ const PurePreviewMessage = ({
                 data-testid={`message-attachments`}
                 className={message.role === 'user' ? 'flex flex-row justify-end' : 'flex flex-row justify-start'}
               >
-                <MessageFilePreview fileParts={attachmentsFromMessage} />
+                <MessageFilePreview fileParts={attachmentsFromMessage} isUserMessage={message.role === 'user'} />
               </div>
             )}
 
@@ -128,6 +130,12 @@ const PurePreviewMessage = ({
               const { type } = part;
               const key = `message-${message.id}-part-${index}`;
 
+              // Step boundaries
+              if (type === 'step-start') {
+                return <MessageStepBoundary key={key} />;
+              }
+
+              // Reasoning
               if (type === 'reasoning' && part.text?.trim().length > 0) {
                 return (
                   <MessageReasoning
@@ -136,6 +144,11 @@ const PurePreviewMessage = ({
                     reasoning={part.text}
                   />
                 );
+              }
+
+              // File parts are handled separately above, skip them here
+              if (type === 'file') {
+                return null;
               }
 
               if (type === 'text') {
@@ -340,6 +353,40 @@ const PurePreviewMessage = ({
                   );
                 }
               }
+
+              // Generic tool calls fallback
+              if (type.startsWith('tool-')) {
+                const toolName = type.replace('tool-', '');
+                const knownTools = ['getWeather', 'createDocument', 'updateDocument', 'requestSuggestions'];
+                
+                // Only handle unknown tools with the generic component
+                if (!knownTools.includes(toolName)) {
+                  const toolCallId = (part as any).toolCallId || `tool-${index}`;
+                  const state = (part as any).state || 'input-available';
+                  const input = (part as any).input;
+                  const output = (part as any).output;
+                  const errorText = (part as any).errorText;
+
+                  return (
+                    <MessageToolCall
+                      key={toolCallId}
+                      toolName={toolName}
+                      toolCallId={toolCallId}
+                      state={state}
+                      input={input}
+                      output={output}
+                      errorText={errorText}
+                    />
+                  );
+                }
+              }
+
+              // Fallback for unhandled part types (debug in development)
+              if (process.env.NODE_ENV === 'development') {
+                console.warn('[DEBUG] Unhandled message part type:', type, part);
+              }
+
+              return null;
             })}
 
             {!isReadonly && (
