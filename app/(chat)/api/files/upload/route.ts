@@ -13,13 +13,14 @@ import {
 } from '@/features/upload-files/server';
 import { setJob } from '@/features/upload-files/lib/job-store';
 import type { Job } from '@/features/upload-files/model/types';
-import { extractModelInfo } from '@/features/upload-files/lib/model-info';
+import { extractModelInfo } from '@/features/upload-files/lib/model-info-server';
+import { getApiKeyForProvider } from '@/features/upload-files/lib/api-keys';
 
 interface UploadRequest {
   fileName: string;
   fileSize: number;
   fileType: string;
-  selectedChatModel?: string;
+  selectedChatModel?: string; // Modelo selecionado para obter o provider e API key
 }
 
 export async function POST(request: Request) {
@@ -102,6 +103,21 @@ export async function POST(request: Request) {
     // Extract model info if provided
     const modelInfo = body.selectedChatModel ? extractModelInfo(body.selectedChatModel) : null;
     
+    // Get API key for provider if model is provided
+    let apiKey: string | undefined;
+    if (modelInfo && modelInfo.provider) {
+      apiKey = getApiKeyForProvider(modelInfo.provider);
+      if (apiKey) {
+        console.log('[UPLOAD API] 🔑 API key obtained for provider:', {
+          provider: modelInfo.provider,
+          hasApiKey: !!apiKey,
+          apiKeyLength: apiKey.length,
+        });
+      } else {
+        console.warn('[UPLOAD API] ⚠️ API key not found for provider:', modelInfo.provider);
+      }
+    }
+    
     // Create initial job in store
     const initialJob: Job = {
       id: jobId,
@@ -137,6 +153,7 @@ export async function POST(request: Request) {
       key, // S3 key where file will be stored
       publicUrl, // Public URL after upload
       expiresIn: 3600, // URL expiration time in seconds
+      ...(apiKey && { apiKey }), // API key for the provider (only if available)
     };
 
     const duration = Date.now() - startTime;

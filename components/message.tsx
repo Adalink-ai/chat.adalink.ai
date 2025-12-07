@@ -6,7 +6,7 @@ import { DocumentToolCall, DocumentToolResult } from './document';
 import { PencilEditIcon, SparklesIcon } from './icons';
 import { Markdown } from './markdown';
 import { MessageActions } from './message-actions';
-import { PreviewAttachment } from './preview-attachment';
+import { MessageFilePreview } from './message-file-preview';
 import { Weather } from './weather';
 import equal from 'fast-deep-equal';
 import { cn, sanitizeText } from '@/lib/utils';
@@ -46,6 +46,35 @@ const PurePreviewMessage = ({
   const attachmentsFromMessage = message.parts.filter(
     (part) => part.type === 'file',
   );
+
+  // Debug: Verificar file parts no componente
+  if (process.env.NODE_ENV === 'development') {
+    if (attachmentsFromMessage.length > 0) {
+      console.log('[DEBUG] MessageFilePreview - Found file parts:', {
+        messageId: message.id,
+        role: message.role,
+        totalParts: message.parts?.length || 0,
+        filePartsCount: attachmentsFromMessage.length,
+        fileParts: attachmentsFromMessage.map((part) => ({
+          type: part.type,
+          url: part.url,
+          filename: part.filename || (part as any).name,
+          mediaType: part.mediaType,
+        })),
+      });
+    } else if (message.role === 'user') {
+      // Log quando mensagem do usuário não tem file parts mas deveria ter
+      console.log('[DEBUG] MessageFilePreview - User message without file parts:', {
+        messageId: message.id,
+        totalParts: message.parts?.length || 0,
+        parts: message.parts?.map((part) => ({
+          type: part.type,
+          ...(part.type === 'text' ? { text: (part as any).text?.substring(0, 50) } : {}),
+          ...(part.type === 'file' ? { url: part.url, filename: part.filename || (part as any).name } : {}),
+        })) || [],
+      });
+    }
+  }
 
   useDataStream();
 
@@ -89,18 +118,9 @@ const PurePreviewMessage = ({
             {attachmentsFromMessage.length > 0 && (
               <div
                 data-testid={`message-attachments`}
-                className="flex flex-row justify-end gap-2"
+                className={message.role === 'user' ? 'flex flex-row justify-end' : 'flex flex-row justify-start'}
               >
-                {attachmentsFromMessage.map((attachment) => (
-                  <PreviewAttachment
-                    key={attachment.url}
-                    attachment={{
-                      name: attachment.filename ?? 'file',
-                      contentType: attachment.mediaType,
-                      url: attachment.url,
-                    }}
-                  />
-                ))}
+                <MessageFilePreview fileParts={attachmentsFromMessage} />
               </div>
             )}
 

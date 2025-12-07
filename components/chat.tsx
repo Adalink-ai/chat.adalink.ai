@@ -19,11 +19,10 @@ import type { Session } from 'next-auth';
 import { useSearchParams } from 'next/navigation';
 import { useAutoResume } from '@/hooks/use-auto-resume';
 import { ChatSDKError } from '@/lib/errors';
-import type { Attachment, ChatMessage } from '@/lib/types';
+import type { ChatMessage } from '@/lib/types';
 import { useSidebarContext } from './sidebar-context';
 import { useDataStream } from './data-stream-provider';
-import { useAtomValue } from 'jotai';
-import { uploadFileJobResultAtom } from '@/features/upload-files/model/atoms';
+import { UploadedDocumentsPreview } from './uploaded-documents-preview';
 
 export function Chat({
   id,
@@ -41,7 +40,6 @@ export function Chat({
   autoResume: boolean;
 }) {
 
-  const uploadFileJobResult = useAtomValue(uploadFileJobResultAtom);
   const { mutate } = useSWRConfig();
   const { setDataStream } = useDataStream();
   const { isCollapsed, activePanel } = useSidebarContext();
@@ -97,6 +95,29 @@ export function Chat({
     },
   });
 
+  // Debug: Verificar mensagens no useChat
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      const userMessages = messages.filter((msg) => msg.role === 'user');
+      userMessages.forEach((msg) => {
+        const fileParts = msg.parts?.filter((part) => part.type === 'file') || [];
+        if (fileParts.length > 0) {
+          console.log('[DEBUG] useChat - User message with file parts:', {
+            messageId: msg.id,
+            totalParts: msg.parts?.length || 0,
+            filePartsCount: fileParts.length,
+            fileParts: fileParts.map((part) => ({
+              type: part.type,
+              url: part.url,
+              filename: part.filename || (part as any).name,
+              mediaType: part.mediaType,
+            })),
+          });
+        }
+      });
+    }
+  }, [messages]);
+
   const searchParams = useSearchParams();
   const query = searchParams.get('query');
 
@@ -119,7 +140,6 @@ export function Chat({
     fetcher,
   );
 
-  const [attachments, setAttachments] = useState<Array<Attachment>>([]);
   const isArtifactVisible = useArtifactSelector((state) => state.isVisible);
 
   // BorderAnimation effect
@@ -164,7 +184,6 @@ export function Chat({
     >
       <div className="flex-1 flex flex-col">
         <div className="flex-1 flex flex-col md:rounded-lg overflow-hidden bg-background border-0 md:border md:border-zinc-200/50 md:dark:border-zinc-800/30">
-        {JSON.stringify(uploadFileJobResult)}
           <BorderAnimation showAnimation={true} />
           <ChatHeader
             selectedModelId={initialChatModel}
@@ -200,8 +219,6 @@ export function Chat({
                   setInput={setInput}
                   status={status}
                   stop={stop}
-                  attachments={attachments}
-                  setAttachments={setAttachments}
                   messages={messages}
                   setMessages={setMessages}
                   sendMessage={sendMessage}
@@ -219,8 +236,8 @@ export function Chat({
         setInput={setInput}
         status={status}
         stop={stop}
-        attachments={attachments}
-        setAttachments={setAttachments}
+        attachments={[]}
+        setAttachments={() => {}}
         sendMessage={sendMessage}
         messages={messages}
         setMessages={setMessages}

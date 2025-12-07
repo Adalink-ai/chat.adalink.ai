@@ -32,6 +32,7 @@ export async function uploadFileToS3({
       fileName: file.name,
       fileSize: file.size,
       fileType: file.type,
+      ...(selectedChatModel && { selectedChatModel }),
     };
     
     console.log('[UPLOAD CLIENT] 📡 Step 1: Requesting presigned URL...', {
@@ -94,7 +95,7 @@ export async function uploadFileToS3({
       throw new Error(`Resposta inválida do servidor ao inicializar upload de ${file.name}`);
     }
 
-    const { uploadUrl, workerUrl, jobId, key, publicUrl } = responseData;
+    const { uploadUrl, workerUrl, jobId, key, publicUrl, apiKey } = responseData;
 
     console.log('[UPLOAD CLIENT] 📋 Response data received:', {
       hasUploadUrl: !!uploadUrl,
@@ -208,6 +209,7 @@ export async function uploadFileToS3({
           selectedChatModel,
           provider,
           hasProvider: !!provider,
+          hasApiKey: !!apiKey,
         });
         
         const workerPayload = {
@@ -216,7 +218,8 @@ export async function uploadFileToS3({
           fileName: file.name,
           fileSize: file.size,
           fileType: file.type || 'application/octet-stream',
-          provider,
+          provider: provider || '',
+          ...(apiKey && { apiKey }),
         };
 
         console.log('[UPLOAD CLIENT] 📦 Worker payload built:', {

@@ -26,7 +26,15 @@ import type { UseChatHelpers } from '@ai-sdk/react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useScrollToBottom } from '@/hooks/use-scroll-to-bottom';
 import { useVoiceRecognition } from '@/hooks/use-voice-recognition';
-import type { Attachment, ChatMessage } from '@/lib/types';
+import type { ChatMessage } from '@/lib/types';
+import { generateUUID } from '@/lib/utils';
+import { UploadedDocumentsPreview } from './uploaded-documents-preview';
+import { useAtomValue, useSetAtom } from 'jotai';
+import { 
+  uploadFileJobResultAtom, 
+  uploadFileJobResultAsFileUIPartsAtom,
+  removeJobAtom 
+} from '@/features/upload-files/model/atoms';
 
 function PureMultimodalInput({
   chatId,
@@ -34,8 +42,6 @@ function PureMultimodalInput({
   setInput,
   status,
   stop,
-  attachments,
-  setAttachments,
   messages,
   setMessages,
   sendMessage,
@@ -46,8 +52,6 @@ function PureMultimodalInput({
   setInput: Dispatch<SetStateAction<string>>;
   status: UseChatHelpers<ChatMessage>['status'];
   stop: () => void;
-  attachments: Array<Attachment>;
-  setAttachments: Dispatch<SetStateAction<Array<Attachment>>>;
   messages: Array<UIMessage>;
   setMessages: UseChatHelpers<ChatMessage>['setMessages'];
   sendMessage: UseChatHelpers<ChatMessage>['sendMessage'];
@@ -57,6 +61,64 @@ function PureMultimodalInput({
   const { width } = useWindowSize();
   const [interimTranscript, setInterimTranscript] = useState('');
   const [isMobile, setIsMobile] = useState(false);
+  const pendingFilePartsRef = useRef<Map<string, Array<any>>>(new Map());
+  
+  // Atoms para gerenciar jobs de upload
+  const uploadFileJobResult = useAtomValue(uploadFileJobResultAtom);
+  const fileUIParts = useAtomValue(uploadFileJobResultAsFileUIPartsAtom);
+  const removeJob = useSetAtom(removeJobAtom);
+
+  // Garantir que file parts sejam preservados quando useChat adiciona mensagem
+  useEffect(() => {
+    // Encontrar a mensagem mais recente do usuário que não tem file parts
+    const userMessages = messages.filter((msg) => msg.role === 'user');
+    if (userMessages.length === 0) return;
+
+    const mostRecentUserMessage = userMessages[userMessages.length - 1];
+    const hasFileParts = mostRecentUserMessage.parts?.some((part) => part.type === 'file');
+    
+    // Se a mensagem mais recente não tem file parts, verificar se temos file parts pendentes
+    if (!hasFileParts && pendingFilePartsRef.current.size > 0) {
+      // Pegar os file parts mais recentes (último valor no map)
+      const pendingEntries = Array.from(pendingFilePartsRef.current.entries());
+      if (pendingEntries.length > 0) {
+        const [tempId, pendingFileParts] = pendingEntries[pendingEntries.length - 1];
+        
+        // Verificar se a mensagem foi criada recentemente (últimos 3 segundos)
+        const metadata = mostRecentUserMessage.metadata as { createdAt?: string } | undefined;
+        const messageCreatedAt = metadata?.createdAt 
+          ? new Date(metadata.createdAt).getTime() 
+          : 0;
+        const messageAge = Date.now() - messageCreatedAt;
+        if (messageAge < 3000) {
+          if (process.env.NODE_ENV === 'development') {
+            console.log('[MULTIMODAL-INPUT] Restoring file parts to most recent message:', {
+              messageId: mostRecentUserMessage.id,
+              filePartsCount: pendingFileParts.length,
+            });
+          }
+
+          setMessages((currentMessages) => {
+            return currentMessages.map((msg) => {
+              if (msg.id === mostRecentUserMessage.id && msg.role === 'user') {
+                return {
+                  ...msg,
+                  parts: [
+                    ...pendingFileParts,
+                    ...(msg.parts?.filter((part) => part.type !== 'file') || []),
+                  ],
+                };
+              }
+              return msg;
+            });
+          });
+
+          // Limpar após usar
+          pendingFilePartsRef.current.delete(tempId);
+        }
+      }
+    }
+  }, [messages, setMessages]);
 
   useEffect(() => {
     if (textareaRef.current) {
@@ -149,23 +211,113 @@ function PureMultimodalInput({
   const submitForm = useCallback(() => {
     window.history.replaceState({}, '', `/chat/${chatId}`);
 
-    sendMessage({
-      role: 'user',
-      parts: [
-        ...attachments.map((attachment) => ({
-          type: 'file' as const,
-          url: attachment.url,
-          name: attachment.name,
-          mediaType: attachment.contentType,
-        })),
-        {
-          type: 'text',
-          text: input,
-        },
-      ],
-    });
+    // Normalizar fileUIParts para garantir formato correto
+    const normalizeFilePart = (part: any) => {
+      // Validar estrutura mínima
+      if (!part.url || !part.mediaType) {
+        console.error('Invalid file part:', part);
+        toast.error('Arquivo inválido: faltam campos obrigatórios');
+        return null;
+      }
 
-    setAttachments([]);
+      // Garantir que tem filename ou name
+      const filename = part.filename || part.name;
+      if (!filename) {
+        console.error('Invalid file part: missing filename/name', part);
+        toast.error('Arquivo inválido: nome do arquivo não encontrado');
+        return null;
+      }
+
+      return {
+        type: 'file' as const,
+        url: part.url,
+        filename: filename,
+        mediaType: part.mediaType,
+        ...(part.providerMetadata && { providerMetadata: part.providerMetadata }),
+      };
+    };
+
+    // Normalizar fileUIParts do atom
+    const fileParts = fileUIParts
+      .map(normalizeFilePart)
+      .filter((part): part is NonNullable<typeof part> => part !== null);
+
+    // Validar que temos pelo menos texto ou arquivos
+    if (fileParts.length === 0 && !input.trim()) {
+      toast.error('Por favor, digite uma mensagem ou anexe um arquivo');
+      return;
+    }
+
+    // Log para debug (apenas em desenvolvimento)
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[MULTIMODAL-INPUT] Sending message:', {
+        filePartsCount: fileParts.length,
+        fileParts: fileParts.map(p => ({ url: p.url, filename: p.filename, mediaType: p.mediaType })),
+        hasText: !!input.trim(),
+      });
+    }
+
+    // Criar mensagem completa com file parts
+    // O useChat vai gerar o ID automaticamente, então não precisamos especificar
+    const messageToSend = {
+      role: 'user' as const,
+      parts: [
+        ...fileParts,
+        ...(input.trim() ? [{
+          type: 'text' as const,
+          text: input.trim(),
+        }] : []),
+      ],
+    };
+
+    // Log para debug
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[MULTIMODAL-INPUT] Sending message with parts:', {
+        partsCount: messageToSend.parts.length,
+        filePartsCount: fileParts.length,
+        hasText: !!input.trim(),
+        fileParts: fileParts.map(p => ({ url: p.url, filename: p.filename })),
+      });
+    }
+
+    // Enviar mensagem (useChat vai gerar o ID automaticamente)
+    sendMessage(messageToSend);
+
+    // Armazenar file parts temporariamente para restaurar depois
+    // O useChat pode não preservar file parts, então vamos restaurá-los no useEffect
+    if (fileParts.length > 0) {
+      // Usar um ID temporário que será substituído pelo ID gerado pelo useChat
+      // Vamos usar um timestamp para rastrear a mensagem mais recente
+      const tempId = `temp-${Date.now()}`;
+      pendingFilePartsRef.current.set(tempId, fileParts);
+      
+      // Limpar após 5 segundos (tempo suficiente para useChat processar)
+      setTimeout(() => {
+        pendingFilePartsRef.current.delete(tempId);
+      }, 5000);
+    }
+
+    // Remover jobs do atom após envio (usar fileParts normalizados)
+    if (fileParts.length > 0 && fileUIParts.length > 0) {
+      // Mapear fileParts enviados para jobIds através da URL
+      const sentUrls = new Set(fileParts.map(part => part.url));
+      const jobIdsToRemove = uploadFileJobResult
+        .filter((job) => {
+          const fileUrl = job.result?.fileUrl || job.result?.url;
+          return (
+            job.status === 'complete' &&
+            fileUrl &&
+            sentUrls.has(fileUrl)
+          );
+        })
+        .map((job) => job.id);
+
+      // Remover cada job do atom
+      jobIdsToRemove.forEach((jobId) => {
+        removeJob(jobId);
+      });
+    }
+
     setLocalStorageInput('');
     resetHeight();
     setInput('');
@@ -176,9 +328,10 @@ function PureMultimodalInput({
   }, [
     input,
     setInput,
-    attachments,
+    fileUIParts,
+    uploadFileJobResult,
+    removeJob,
     sendMessage,
-    setAttachments,
     setLocalStorageInput,
     width,
     chatId,
@@ -219,22 +372,14 @@ function PureMultimodalInput({
 
       try {
         const uploadPromises = files.map((file) => uploadFile(file));
-        const uploadedAttachments = await Promise.all(uploadPromises);
-        const successfullyUploadedAttachments = uploadedAttachments.filter(
-          (attachment) => attachment !== undefined,
-        );
-
-        setAttachments((currentAttachments) => [
-          ...currentAttachments,
-          ...successfullyUploadedAttachments,
-        ]);
+        await Promise.all(uploadPromises);
       } catch (error) {
         console.error('Error uploading files!', error);
       } finally {
         setUploadQueue([]);
       }
     },
-    [setAttachments],
+    [],
   );
 
   const { isAtBottom, scrollToBottom } = useScrollToBottom();
@@ -276,10 +421,12 @@ function PureMultimodalInput({
       </AnimatePresence>
 
       {messages.length === 0 &&
-        attachments.length === 0 &&
+        fileUIParts.length === 0 &&
         uploadQueue.length === 0 && (
           <SuggestedActions sendMessage={sendMessage} chatId={chatId} />
         )}
+
+      <UploadedDocumentsPreview />
 
       <input
         type="file"
@@ -290,28 +437,7 @@ function PureMultimodalInput({
         tabIndex={-1}
       />
 
-      {(attachments.length > 0 || uploadQueue.length > 0) && (
-        <div
-          data-testid="attachments-preview"
-          className="flex flex-row gap-2 overflow-x-scroll items-end"
-        >
-          {attachments.map((attachment) => (
-            <PreviewAttachment key={attachment.url} attachment={attachment} />
-          ))}
 
-          {uploadQueue.map((filename) => (
-            <PreviewAttachment
-              key={filename}
-              attachment={{
-                url: '',
-                name: filename,
-                contentType: '',
-              }}
-              isUploading={true}
-            />
-          ))}
-        </div>
-      )}
 
       <div className="flex flex-col gap-2 max-w-3xl mx-auto w-full px-4 md:px-0">
         
@@ -418,7 +544,6 @@ export const MultimodalInput = memo(
   (prevProps, nextProps) => {
     if (prevProps.input !== nextProps.input) return false;
     if (prevProps.status !== nextProps.status) return false;
-    if (!equal(prevProps.attachments, nextProps.attachments)) return false;
 
     return true;
   },

@@ -50,15 +50,15 @@ export const uploadFileJobResultAsFileUIPartsAtom = atom<FileUIPart[]>((get) => 
   
   return jobs
     .filter((job) => {
-      // Only include completed jobs with a fileUrl
+      // Only include completed jobs with a fileUrl or url
       return (
         job.status === 'complete' &&
-        job.result?.fileUrl &&
-        typeof job.result.fileUrl === 'string'
+        (job.result?.fileUrl || job.result?.url) &&
+        typeof (job.result?.fileUrl || job.result?.url) === 'string'
       );
     })
     .map((job) => {
-      const fileUrl = job.result!.fileUrl as string;
+      const fileUrl = (job.result?.fileUrl || job.result?.url) as string;
       
       return {
         type: 'file' as const,
@@ -66,8 +66,8 @@ export const uploadFileJobResultAsFileUIPartsAtom = atom<FileUIPart[]>((get) => 
         filename: job.fileName,
         url: fileUrl,
         providerMetadata: {
-         provider: job.result!.provider,
-         fileId: job.result!.fileId,
+         provider: job.result?.provider,
+         fileId: job.result?.fileId,
         },
       };
     });

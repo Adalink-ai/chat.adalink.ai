@@ -20,6 +20,7 @@ export interface PresignedUploadResponse {
   key: string; // S3 key where file will be stored
   publicUrl: string; // Public URL after upload
   expiresIn: number; // URL expiration time in seconds
+  apiKey?: string; // API key for the provider (only if available)
 }
 
 export type JobStatus = 'pending' | 'processing' | 'complete' | 'error';

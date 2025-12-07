@@ -199,6 +199,24 @@ export async function POST(request: Request) {
       country,
     };
 
+    // Debug: Verificar file parts antes de salvar
+    const fileParts = message.parts.filter((part) => part.type === 'file');
+    console.log('[DEBUG] Message parts before save:', {
+      totalParts: message.parts.length,
+      filePartsCount: fileParts.length,
+      fileParts: fileParts.map((part) => ({
+        type: part.type,
+        url: part.url,
+        filename: part.filename || (part as any).name,
+        mediaType: part.mediaType,
+      })),
+      allParts: message.parts.map((part) => ({
+        type: part.type,
+        ...(part.type === 'text' ? { text: (part as any).text?.substring(0, 50) } : {}),
+        ...(part.type === 'file' ? { url: part.url, filename: part.filename || (part as any).name } : {}),
+      })),
+    });
+
     // Save user message and generate stream ID in parallel
     const streamId = generateUUID();
     const finalSetupStartTime = Date.now();
