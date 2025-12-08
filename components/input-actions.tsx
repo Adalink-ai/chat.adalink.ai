@@ -2,7 +2,6 @@
 
 import { Button } from './ui/button';
 import { SendIcon, StopIcon } from './icons';
-import { toast } from 'sonner';
 import type { UseChatHelpers } from '@ai-sdk/react';
 import type { ChatMessage } from '@/lib/types';
 import { VoiceInputButton } from './voice-input-button';

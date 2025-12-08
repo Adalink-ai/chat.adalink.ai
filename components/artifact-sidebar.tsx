@@ -31,8 +31,6 @@ export function ArtifactSidebar({
   setInput,
   status,
   stop,
-  attachments,
-  setAttachments,
   messages,
   setMessages,
   sendMessage,
@@ -61,8 +59,6 @@ export function ArtifactSidebar({
           setInput={setInput}
           status={status}
           stop={stop}
-          attachments={attachments}
-          setAttachments={setAttachments}
           messages={messages}
           sendMessage={sendMessage}
           setMessages={setMessages}

@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 import { signIn } from '@/app/(auth)/auth';
 import { decodeSSOToken } from '@/lib/sso/jwt';
 import { syncSSOUser } from '@/lib/sso/sync-user';
@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
     console.log('[SSO] Token válido para:', ssoData.email);
     console.log('[SSO] AccessToken presente no JWT:', !!ssoData.accessToken);
     if (ssoData.accessToken) {
-      console.log('[SSO] AccessToken (primeiros 20 chars):', ssoData.accessToken.substring(0, 20) + '...');
+      console.log('[SSO] AccessToken (primeiros 20 chars):', `${ssoData.accessToken.substring(0, 20)}...`);
     } else {
       console.warn('[SSO] ⚠️ AccessToken NÃO foi enviado pelo front-adalink!');
     }

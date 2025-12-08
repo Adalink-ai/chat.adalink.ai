@@ -1,6 +1,6 @@
 'use client';
 
-import { type ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { useSidebarContext } from './sidebar-context';
 
 interface ChatLayoutProps {

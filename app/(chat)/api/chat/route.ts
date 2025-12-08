@@ -5,6 +5,7 @@ import {
   smoothStream,
   stepCountIs,
   streamText,
+  type LanguageModel,
 } from 'ai';
 import { auth, type UserType } from '@/app/(auth)/auth';
 import { type RequestHints, systemPrompt } from '@/lib/ai/prompts';
@@ -278,7 +279,7 @@ export async function POST(request: Request) {
 
         // If files are present, try to use provider-specific model
         // Otherwise, use gateway (or internal model)
-        let modelToUse;
+        let modelToUse: LanguageModel;
         let apiKeyType: string;
 
         if (hasFiles && !useInternalModel) {

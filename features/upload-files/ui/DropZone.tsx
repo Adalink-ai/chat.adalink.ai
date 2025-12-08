@@ -23,9 +23,17 @@ export function DropZone({
 }: DropZoneProps) {
   return (
     <div
+      role="button"
+      tabIndex={0}
       onDragOver={onDragOver}
       onDragLeave={onDragLeave}
       onDrop={onDrop}
+      onKeyDown={(e) => {
+        if ((e.key === 'Enter' || e.key === ' ') && !isUploading) {
+          e.preventDefault();
+          fileInputRef.current?.click();
+        }
+      }}
       className={`
         relative border-2 border-dashed rounded-lg p-8 transition-colors
         ${isDragging 

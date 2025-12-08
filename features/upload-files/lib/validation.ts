@@ -87,8 +87,19 @@ export function validateFileSize(fileSize: number): void {
 }
 
 export function sanitizeFileName(fileName: string): string {
+  // Replace invalid characters: < > : " / \ | ? * and control characters (0x00-0x1f)
+  // Split into two replacements to avoid control characters in regex literal
+  const invalidChars = /[<>:"/\\|?*]/g;
+  
   return fileName
-    .replace(/[<>:"/\\|?*\x00-\x1f]/g, '_')
+    .replace(invalidChars, '_')
+    .split('')
+    .map((char) => {
+      const code = char.charCodeAt(0);
+      // Replace control characters (0x00-0x1f) with underscore
+      return code >= 0 && code <= 31 ? '_' : char;
+    })
+    .join('')
     .replace(/\.{2,}/g, '.')
     .replace(/^\./, '')
     .slice(0, 255);

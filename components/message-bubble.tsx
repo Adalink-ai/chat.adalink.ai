@@ -2,7 +2,7 @@
 
 import { BotIcon } from './icons';
 import { Markdown } from './markdown';
-import { sanitizeText, cn } from '@/lib/utils';
+import { sanitizeText, cn, generateUUID } from '@/lib/utils';
 import type { ChatMessage } from '@/lib/types';
 import type { Session } from 'next-auth';
 import { MessageFilePreview } from './message-file-preview';
@@ -46,10 +46,11 @@ export function MessageBubble({ message, session }: MessageBubbleProps) {
       {/* Message Content */}
       <div className="flex flex-col gap-2 max-w-xs md:max-w-md lg:max-w-lg">
         {message.parts?.map((part, index) => {
+          const key = generateUUID();
           if (part.type === 'text') {
             return (
               <div
-                key={index}
+                key={message.id + key}
                 className={cn(
                   'px-4 py-3 rounded-2xl',
                   isUser
@@ -63,7 +64,7 @@ export function MessageBubble({ message, session }: MessageBubbleProps) {
           }
           if (part.type === 'file') {
             return (
-              <div key={index}>
+              <div key={message.id + key}>
                 <MessageFilePreview fileParts={[part]} isUserMessage={isUser} />
               </div>
             );

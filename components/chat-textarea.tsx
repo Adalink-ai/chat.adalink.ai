@@ -1,6 +1,4 @@
 'use client';
-
-import { useState, useEffect } from 'react';
 import { Textarea } from './ui/textarea';
 import { toast } from 'sonner';
 import type { ChangeEvent } from 'react';

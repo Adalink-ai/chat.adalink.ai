@@ -10,7 +10,6 @@ import { UploadedDocumentsPreview } from './uploaded-documents-preview';
 import { ScrollToBottomButton } from './scroll-to-bottom-button';
 import { ChatTextarea } from './chat-textarea';
 import { InputActions } from './input-actions';
-import equal from 'fast-deep-equal';
 import type { UseChatHelpers } from '@ai-sdk/react';
 import { useScrollToBottom } from '@/hooks/use-scroll-to-bottom';
 import type { ChatMessage } from '@/lib/types';
@@ -147,12 +146,4 @@ function PureMultimodalInput({
   );
 }
 
-export const MultimodalInput = memo(
-  PureMultimodalInput,
-  (prevProps, nextProps) => {
-    if (prevProps.input !== nextProps.input) return false;
-    if (prevProps.status !== nextProps.status) return false;
-
-    return true;
-  },
-);
+export const MultimodalInput = memo(PureMultimodalInput);

@@ -131,7 +131,7 @@ export async function uploadFileToS3({
     // Note: We don't include Content-Type header to avoid CORS preflight request.
     // The ContentType is already included in the presigned URL signature.
     console.log('[UPLOAD CLIENT] 📤 Step 2: Uploading to S3...', {
-      uploadUrl: uploadUrl.substring(0, 100) + '...', // Log partial URL for security
+      uploadUrl: `${uploadUrl.substring(0, 100)}...`, // Log partial URL for security
       fileSize: file.size,
       fileType: file.type,
       fileName: file.name,

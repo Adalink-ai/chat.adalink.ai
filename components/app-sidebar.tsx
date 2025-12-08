@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { SidebarHistory } from '@/components/sidebar-history';
 import { SidebarSpecialists } from '@/components/sidebar-specialists';
 import { Button } from '@/components/ui/button';
-import { Home, Compass, Layers, TrendingUp, Plus, LogIn, ChevronLeft, ChevronRight, Moon, Sun, LogOut, House, Bot, UndoDot, UndoDotIcon } from 'lucide-react';
+import { Home, Compass, Layers, TrendingUp, Plus, LogIn, ChevronLeft, ChevronRight, Moon, Sun, LogOut, Bot, UndoDotIcon } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from 'next-themes';
@@ -291,6 +291,7 @@ export function AppSidebar({ user }: { user: User | undefined }) {
             
             return (
               <button
+                type="button"
                 key={item.id}
                 onClick={() => handleNavClick(item.id, item.path, isExternal)}
                 className={`
@@ -335,7 +336,7 @@ export function AppSidebar({ user }: { user: User | undefined }) {
         {user && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="size-10 rounded-full bg-[#8F5BFF] flex items-center justify-center text-white font-medium text-sm hover:bg-[#A970FF] transition-colors">
+              <button type="button" className="size-10 rounded-full bg-[#8F5BFF] flex items-center justify-center text-white font-medium text-sm hover:bg-[#A970FF] transition-colors">
                 {user.name?.[0]?.toUpperCase() || 'U'}
               </button>
             </DropdownMenuTrigger>
@@ -399,6 +400,7 @@ export function AppSidebar({ user }: { user: User | undefined }) {
                     <p className="text-sm text-zinc-500 dark:text-white/60 mb-4">Explorar tópicos</p>
                     {['Tecnologia', 'Ciência', 'Arte', 'Negócios'].map((topic) => (
                       <button
+                        type="button"
                         key={topic}
                         className="w-full text-left px-3 py-2 rounded-lg text-zinc-700 dark:text-white/80 hover:bg-zinc-100 dark:hover:bg-white/5 hover:text-[#8F5BFF] transition-colors"
                       >
@@ -413,6 +415,7 @@ export function AppSidebar({ user }: { user: User | undefined }) {
                     <p className="text-sm text-zinc-500 dark:text-white/60 mb-4">Seus espaços</p>
                     {['Projetos', 'Pessoal', 'Trabalho'].map((space) => (
                       <button
+                        type="button"
                         key={space}
                         className="w-full text-left px-3 py-2 rounded-lg text-zinc-700 dark:text-white/80 hover:bg-zinc-100 dark:hover:bg-white/5 hover:text-[#8F5BFF] transition-colors"
                       >
@@ -427,6 +430,7 @@ export function AppSidebar({ user }: { user: User | undefined }) {
                     <p className="text-sm text-zinc-500 dark:text-white/60 mb-4">Mercados</p>
                     {['🇺🇸 Mercados dos EUA', '₿ Criptomoeda', '📊 Ganhos', '🔍 Análise'].map((item) => (
                       <button
+                        type="button"
                         key={item}
                         className="w-full text-left px-3 py-2 rounded-lg text-zinc-700 dark:text-white/80 hover:bg-zinc-100 dark:hover:bg-white/5 hover:text-[#8F5BFF] transition-colors"
                       >
@@ -444,6 +448,7 @@ export function AppSidebar({ user }: { user: User | undefined }) {
 
         {/* Botão de Toggle (Expandir/Recolher) - Desktop */}
         <button
+          type="button"
           onClick={toggleCollapse}
           className={`
             hidden md:flex fixed top-4 transition-all duration-300 z-50

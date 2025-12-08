@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, } from 'react';
 import { useSession } from 'next-auth/react';
 
 export interface Specialist {
@@ -13,8 +13,8 @@ export interface Specialist {
 
 // Cache global para evitar recarregar os dados
 let cachedSpecialists: Specialist[] | null = null;
-let cacheTimestamp: number = 0;
-let isFetching: boolean = false;
+let cacheTimestamp = 0;
+let isFetching = false;
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutos
 
 export function useSpecialists() {

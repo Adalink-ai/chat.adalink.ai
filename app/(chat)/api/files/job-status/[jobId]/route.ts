@@ -1,7 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/app/(auth)/auth';
 import { getJob } from '@/features/upload-files/lib/job-store';
-import type { Job } from '@/features/upload-files/model/types';
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ jobId: string }> }

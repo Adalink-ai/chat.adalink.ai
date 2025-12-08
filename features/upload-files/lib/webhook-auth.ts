@@ -1,6 +1,6 @@
 import 'server-only';
 
-import { createHmac, timingSafeEqual } from 'crypto';
+import { createHmac, timingSafeEqual } from 'node:crypto';
 
 /**
  * Verify webhook signature using HMAC-SHA256

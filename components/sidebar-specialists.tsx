@@ -2,7 +2,6 @@
 
 import { useSpecialists } from '@/hooks/use-specialists';
 import { Bot, ExternalLink, Loader2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { getAssetUrl } from '@/lib/utils/asset-url';
 
 interface SidebarSpecialistsProps {
@@ -87,6 +86,7 @@ export function SidebarSpecialists({ onSpecialistClick }: SidebarSpecialistsProp
       
       {specialists.map((specialist) => (
         <button
+          type="button"
           key={specialist.id}
           onClick={() => handleSpecialistClick(specialist)}
           className="w-full text-left px-3 py-3 rounded-lg bg-zinc-50 dark:bg-white/5 hover:bg-zinc-100 dark:hover:bg-white/10 transition-all duration-200 group border border-transparent hover:border-[#8F5BFF]/30"

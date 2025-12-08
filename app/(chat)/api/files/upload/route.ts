@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { randomUUID } from 'crypto';
+import { randomUUID } from 'node:crypto';
 import { auth } from '@/app/(auth)/auth';
 import { isDevelopmentEnvironment } from '@/lib/constants';
 import {
@@ -105,7 +105,7 @@ export async function POST(request: Request) {
     
     // Get API key for provider if model is provided
     let apiKey: string | undefined;
-    if (modelInfo && modelInfo.provider) {
+    if (modelInfo?.provider) {
       apiKey = getApiKeyForProvider(modelInfo.provider);
       if (apiKey) {
         console.log('[UPLOAD API] 🔑 API key obtained for provider:', {

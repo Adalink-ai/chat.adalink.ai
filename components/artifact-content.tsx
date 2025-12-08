@@ -6,6 +6,7 @@ import { VersionFooter } from './version-footer';
 import { artifactDefinitions } from './artifact';
 import type { Document } from '@/lib/db/schema';
 import type { UIArtifact } from './artifact';
+import type { Dispatch, SetStateAction } from 'react';
 
 interface ArtifactContentProps {
   artifact: UIArtifact;
@@ -21,7 +22,7 @@ interface ArtifactContentProps {
   documents: Array<Document> | undefined;
   handleVersionChange: (type: 'next' | 'prev' | 'toggle' | 'latest') => void;
   isToolbarVisible: boolean;
-  setIsToolbarVisible: (visible: boolean) => void;
+  setIsToolbarVisible: Dispatch<SetStateAction<boolean>>;
   sendMessage: any;
   status: any;
   stop: any;

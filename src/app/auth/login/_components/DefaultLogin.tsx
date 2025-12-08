@@ -90,7 +90,7 @@ export function DefaultLogin() {
           className="object-cover"
           priority
         />
-        <div className="absolute inset-0 bg-black/40"></div>
+        <div className="absolute inset-0 bg-black/40" />
         <div className="relative z-10">
           <LoginFooter />
         </div>

@@ -12,6 +12,12 @@ interface UploadButtonProps {
 }
 
 export function UploadButton({  disabled = false, selectedChatModel }: UploadButtonProps) {
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+
+  const handleClick = useCallback(() => {
+    setIsUploadModalOpen(true);
+  }, []);
+
   // Ocultar botão para providers que não suportam upload de arquivos (XAI e ZAI)
   if (selectedChatModel) {
     const { provider } = extractModelInfo(selectedChatModel);
@@ -19,12 +25,6 @@ export function UploadButton({  disabled = false, selectedChatModel }: UploadBut
       return null;
     }
   }
-
-  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
-
-  const handleClick = useCallback(() => {
-    setIsUploadModalOpen(true);
-  }, []);
 
 
   return (

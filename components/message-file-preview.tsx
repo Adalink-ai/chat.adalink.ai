@@ -2,8 +2,7 @@
 
 import { motion } from 'framer-motion';
 import type { FileUIPart } from 'ai';
-import { FileIcon, ImageIcon } from './icons';
-import { cn } from '@/lib/utils';
+import { cn, generateUUID } from '@/lib/utils';
 
 function formatFileSize(bytes: number): string {
   if (bytes === 0) return '0 B';
@@ -97,9 +96,11 @@ export function MessageFilePreview({ fileParts, isUserMessage = false }: Message
         const isAudio = mediaType.startsWith('audio/');
         const isPDF = mediaType === 'application/pdf';
 
+        const key = generateUUID();
+
         return (
           <motion.a
-            key={`${url}-${index}`}
+            key={`${url}-${key}`}
             href={url}
             target="_blank"
             rel="noopener noreferrer"
