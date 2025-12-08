@@ -5,8 +5,8 @@
  * Applies performance indexes to improve query speed
  */
 
-import { readFileSync } from 'fs';
-import { join } from 'path';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import postgres from 'postgres';
 
 // biome-ignore lint: Forbidden non-null assertion.

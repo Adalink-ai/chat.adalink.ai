@@ -252,6 +252,18 @@ export async function saveMessages({
 }: {
   messages: Array<DBMessage>;
 }) {
+
+
+  // Check if chats exist before insert (Hypothesis A)
+  const chatIds = [...new Set(messages.map(m => m.chatId))];
+  for (const chatId of chatIds) {
+    try {
+      const chatExists = await db.select().from(chat).where(eq(chat.id, chatId)).limit(1);
+    } catch (checkError) {
+    }
+  }
+
+
   try {
     const result = await db.insert(message).values(messages);
 
@@ -284,6 +296,7 @@ export async function saveMessages({
         console.error('[CACHE] Error in async cache invalidation:', error);
       });
     }
+
 
     return result;
   } catch (error) {

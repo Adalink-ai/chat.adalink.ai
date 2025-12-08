@@ -98,14 +98,35 @@ export function sanitizeText(text: string) {
 }
 
 export function convertToUIMessages(messages: DBMessage[]): ChatMessage[] {
-  return messages.map((message) => ({
-    id: message.id,
-    role: message.role as 'user' | 'assistant' | 'system',
-    parts: message.parts as UIMessagePart<CustomUIDataTypes, ChatTools>[],
-    metadata: {
-      createdAt: formatISO(message.createdAt),
-    },
-  }));
+  return messages.map((message) => {
+    const parts = message.parts as UIMessagePart<CustomUIDataTypes, ChatTools>[];
+    const fileParts = parts.filter((part) => part.type === 'file');
+    
+    // Debug: Verificar file parts ao converter do banco
+    if (fileParts.length > 0) {
+      console.log('[DEBUG] convertToUIMessages - Found file parts:', {
+        messageId: message.id,
+        role: message.role,
+        totalParts: parts.length,
+        filePartsCount: fileParts.length,
+        fileParts: fileParts.map((part) => ({
+          type: part.type,
+          url: part.url,
+          filename: part.filename || (part as any).name,
+          mediaType: part.mediaType,
+        })),
+      });
+    }
+    
+    return {
+      id: message.id,
+      role: message.role as 'user' | 'assistant' | 'system',
+      parts,
+      metadata: {
+        createdAt: formatISO(message.createdAt),
+      },
+    };
+  });
 }
 
 export function getTextFromMessage(message: ChatMessage): string {

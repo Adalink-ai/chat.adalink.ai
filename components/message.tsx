@@ -6,7 +6,9 @@ import { DocumentToolCall, DocumentToolResult } from './document';
 import { PencilEditIcon, SparklesIcon } from './icons';
 import { Markdown } from './markdown';
 import { MessageActions } from './message-actions';
-import { PreviewAttachment } from './preview-attachment';
+import { MessageFilePreview } from './message-file-preview';
+import { MessageToolCall } from './message-tool-call';
+import { MessageStepBoundary } from './message-step-boundary';
 import { Weather } from './weather';
 import equal from 'fast-deep-equal';
 import { cn, sanitizeText } from '@/lib/utils';
@@ -46,6 +48,35 @@ const PurePreviewMessage = ({
   const attachmentsFromMessage = message.parts.filter(
     (part) => part.type === 'file',
   );
+
+  // Debug: Verificar file parts no componente
+  if (process.env.NODE_ENV === 'development') {
+    if (attachmentsFromMessage.length > 0) {
+      console.log('[DEBUG] MessageFilePreview - Found file parts:', {
+        messageId: message.id,
+        role: message.role,
+        totalParts: message.parts?.length || 0,
+        filePartsCount: attachmentsFromMessage.length,
+        fileParts: attachmentsFromMessage.map((part) => ({
+          type: part.type,
+          url: part.url,
+          filename: part.filename || (part as any).name,
+          mediaType: part.mediaType,
+        })),
+      });
+    } else if (message.role === 'user') {
+      // Log quando mensagem do usuário não tem file parts mas deveria ter
+      console.log('[DEBUG] MessageFilePreview - User message without file parts:', {
+        messageId: message.id,
+        totalParts: message.parts?.length || 0,
+        parts: message.parts?.map((part) => ({
+          type: part.type,
+          ...(part.type === 'text' ? { text: (part as any).text?.substring(0, 50) } : {}),
+          ...(part.type === 'file' ? { url: part.url, filename: part.filename || (part as any).name } : {}),
+        })) || [],
+      });
+    }
+  }
 
   useDataStream();
 
@@ -89,18 +120,9 @@ const PurePreviewMessage = ({
             {attachmentsFromMessage.length > 0 && (
               <div
                 data-testid={`message-attachments`}
-                className="flex flex-row justify-end gap-2"
+                className={message.role === 'user' ? 'flex flex-row justify-end' : 'flex flex-row justify-start'}
               >
-                {attachmentsFromMessage.map((attachment) => (
-                  <PreviewAttachment
-                    key={attachment.url}
-                    attachment={{
-                      name: attachment.filename ?? 'file',
-                      contentType: attachment.mediaType,
-                      url: attachment.url,
-                    }}
-                  />
-                ))}
+                <MessageFilePreview fileParts={attachmentsFromMessage} isUserMessage={message.role === 'user'} />
               </div>
             )}
 
@@ -108,6 +130,12 @@ const PurePreviewMessage = ({
               const { type } = part;
               const key = `message-${message.id}-part-${index}`;
 
+              // Step boundaries
+              if (type === 'step-start') {
+                return <MessageStepBoundary key={key} />;
+              }
+
+              // Reasoning
               if (type === 'reasoning' && part.text?.trim().length > 0) {
                 return (
                   <MessageReasoning
@@ -116,6 +144,11 @@ const PurePreviewMessage = ({
                     reasoning={part.text}
                   />
                 );
+              }
+
+              // File parts are handled separately above, skip them here
+              if (type === 'file') {
+                return null;
               }
 
               if (type === 'text') {
@@ -320,6 +353,40 @@ const PurePreviewMessage = ({
                   );
                 }
               }
+
+              // Generic tool calls fallback
+              if (type.startsWith('tool-')) {
+                const toolName = type.replace('tool-', '');
+                const knownTools = ['getWeather', 'createDocument', 'updateDocument', 'requestSuggestions'];
+                
+                // Only handle unknown tools with the generic component
+                if (!knownTools.includes(toolName)) {
+                  const toolCallId = (part as any).toolCallId || `tool-${index}`;
+                  const state = (part as any).state || 'input-available';
+                  const input = (part as any).input;
+                  const output = (part as any).output;
+                  const errorText = (part as any).errorText;
+
+                  return (
+                    <MessageToolCall
+                      key={toolCallId}
+                      toolName={toolName}
+                      toolCallId={toolCallId}
+                      state={state}
+                      input={input}
+                      output={output}
+                      errorText={errorText}
+                    />
+                  );
+                }
+              }
+
+              // Fallback for unhandled part types (debug in development)
+              if (process.env.NODE_ENV === 'development') {
+                console.warn('[DEBUG] Unhandled message part type:', type, part);
+              }
+
+              return null;
             })}
 
             {!isReadonly && (
