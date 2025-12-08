@@ -5,6 +5,7 @@ export interface SSOTokenPayload {
   organizationId?: string;
   role?: string;
   phone?: string;
+  accessToken?: string;
   exp?: number;
 }
 
@@ -27,6 +28,13 @@ export function decodeSSOToken(token: string): SSOTokenPayload | null {
       Buffer.from(parts[1], 'base64url').toString('utf-8')
     );
 
+    console.log('[SSO] Payload decodificado:', {
+      id: payload.id,
+      email: payload.email,
+      hasAccessToken: !!payload.accessToken,
+      hasAccess_token: !!payload.access_token,
+    });
+
     // Validar campos obrigatórios
     if (!payload.id || !payload.email) {
       console.error('[SSO] Token inválido: faltam campos obrigatórios');
@@ -39,6 +47,15 @@ export function decodeSSOToken(token: string): SSOTokenPayload | null {
       return null;
     }
 
+    // Aceitar tanto accessToken (camelCase) quanto access_token (snake_case)
+    const accessToken = payload.accessToken || payload.access_token;
+    
+    console.log('[SSO] AccessToken extraído:', {
+      fromAccessToken: !!payload.accessToken,
+      fromAccess_token: !!payload.access_token,
+      finalValue: accessToken ? `${accessToken.substring(0, 20)}...` : 'NÃO ENCONTRADO',
+    });
+
     return {
       id: payload.id as string,
       email: payload.email as string,
@@ -46,6 +63,7 @@ export function decodeSSOToken(token: string): SSOTokenPayload | null {
       organizationId: payload.organizationId as string | undefined,
       role: payload.role as string | undefined,
       phone: payload.phone as string | undefined,
+      accessToken: accessToken as string | undefined,
       exp: payload.exp as number | undefined,
     };
   } catch (error) {

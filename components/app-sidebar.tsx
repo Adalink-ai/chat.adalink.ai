@@ -4,8 +4,9 @@ import type { User } from 'next-auth';
 import { useRouter, usePathname } from 'next/navigation';
 import Image from 'next/image';
 import { SidebarHistory } from '@/components/sidebar-history';
+import { SidebarSpecialists } from '@/components/sidebar-specialists';
 import { Button } from '@/components/ui/button';
-import { Home, Compass, Layers, TrendingUp, Plus, LogIn, ChevronLeft, ChevronRight, Moon, Sun, LogOut } from 'lucide-react';
+import { Home, Compass, Layers, TrendingUp, Plus, LogIn, ChevronLeft, ChevronRight, Moon, Sun, LogOut, House, Bot, UndoDot, UndoDotIcon } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTheme } from 'next-themes';
@@ -21,9 +22,11 @@ import { useSidebarContext } from '@/components/sidebar-context';
 
 const navigationItems = [
   { id: 'home', icon: Home, label: 'Início', path: '/' },
+  { id: 'agents', icon: Bot, label: 'Agentes', path: null },
   { id: 'discover', icon: Compass, label: 'Descobrir', path: '/discover' },
   { id: 'spaces', icon: Layers, label: 'Espaços', path: '/spaces' },
   { id: 'finance', icon: TrendingUp, label: 'Finanças', path: '/finance' },
+  { id: 'workflow', icon: UndoDotIcon, label: 'Workflow', path: 'https://v2.adalink.ai/', external: true },
 ];
 
 export function AppSidebar({ user }: { user: User | undefined }) {
@@ -33,6 +36,7 @@ export function AppSidebar({ user }: { user: User | undefined }) {
   const { isCollapsed, setIsCollapsed, activePanel, setActivePanel } = useSidebarContext();
   const [searchQuery, setSearchQuery] = useState('');
   const [mounted, setMounted] = useState(false);
+  const [mobileView, setMobileView] = useState<'history' | 'agents'>('history');
 
   useEffect(() => {
     setMounted(true);
@@ -51,12 +55,20 @@ export function AppSidebar({ user }: { user: User | undefined }) {
     };
   }, [isCollapsed]);
 
-  const handleNavClick = (itemId: string, path: string) => {
+  const handleNavClick = (itemId: string, path: string | null, isExternal?: boolean) => {
     if (isCollapsed) {
       setIsCollapsed(false);
     }
+    
+    if (isExternal && path) {
+      window.open(path, '_blank', 'noopener,noreferrer');
+      return;
+    }
+    
     setActivePanel(activePanel === itemId ? null : itemId);
-    if (path) router.push(path);
+    if (path) {
+      router.push(path);
+    }
   };
 
   const toggleCollapse = () => {
@@ -91,6 +103,17 @@ export function AppSidebar({ user }: { user: User | undefined }) {
 
         {/* Botões direita */}
         <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => {
+              window.open('https://v2.adalink.ai/', '_blank', 'noopener,noreferrer');
+            }}
+            className="size-10 text-white hover:bg-white/10 rounded-full"
+          >
+            <UndoDotIcon className="size-6" />
+          </Button>
+
           {/* Botão Nova Conversa */}
           <Button
             variant="ghost"
@@ -178,25 +201,52 @@ export function AppSidebar({ user }: { user: User | undefined }) {
               transition={{ duration: 0.3, ease: 'easeInOut' }}
               className="md:hidden fixed left-0 top-16 bottom-0 w-80 bg-white dark:bg-[#0A0A0A] z-50 flex flex-col overflow-hidden"
             >
-              <div className="flex-1 overflow-y-auto p-4">
-                {/* Campo de busca */}
-                <div className="mb-6">
-                  <div className="relative">
-                    <svg className="absolute left-3 top-1/2 -translate-y-1/2 size-5 text-zinc-400 dark:text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                    </svg>
-                    <input
-                      type="text"
-                      placeholder="Buscar"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="w-full pl-10 pr-4 py-2.5 bg-zinc-100 dark:bg-white/5 border border-zinc-200 dark:border-white/10 rounded-lg text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-white/40 focus:outline-none focus:border-[#8F5BFF]"
-                    />
-                  </div>
-                </div>
+              {/* Botões de alternância - Mobile: apenas ícones */}
+              <div className="flex gap-2 p-4 border-b border-zinc-200 dark:border-white/10">
+                <Button
+                  variant={mobileView === 'history' ? 'default' : 'ghost'}
+                  size="icon"
+                  onClick={() => setMobileView('history')}
+                  className={`${mobileView === 'history' ? 'bg-[#8F5BFF] hover:bg-[#A970FF] text-white' : 'text-zinc-600 dark:text-white/70'}`}
+                >
+                  <Home className="size-5" />
+                </Button>
+                <Button
+                  variant={mobileView === 'agents' ? 'default' : 'ghost'}
+                  size="icon"
+                  onClick={() => setMobileView('agents')}
+                  className={`${mobileView === 'agents' ? 'bg-[#8F5BFF] hover:bg-[#A970FF] text-white' : 'text-zinc-600 dark:text-white/70'}`}
+                >
+                  <Bot className="size-5" />
+                </Button>
+              </div>
 
-                {/* Histórico de conversas */}
-                <SidebarHistory user={user} searchQuery={searchQuery} />
+              <div className="flex-1 overflow-y-auto p-4">
+                {mobileView === 'history' ? (
+                  <>
+                    {/* Campo de busca */}
+                    <div className="mb-6">
+                      <div className="relative">
+                        <svg className="absolute left-3 top-1/2 -translate-y-1/2 size-5 text-zinc-400 dark:text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                        <input
+                          type="text"
+                          placeholder="Buscar"
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          className="w-full pl-10 pr-4 py-2.5 bg-zinc-100 dark:bg-white/5 border border-zinc-200 dark:border-white/10 rounded-lg text-zinc-900 dark:text-white placeholder:text-zinc-400 dark:placeholder:text-white/40 focus:outline-none focus:border-[#8F5BFF]"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Histórico de conversas */}
+                    <SidebarHistory user={user} searchQuery={searchQuery} />
+                  </>
+                ) : (
+                  /* Lista de Agentes */
+                  <SidebarSpecialists />
+                )}
               </div>
             </motion.div>
           </>
@@ -237,11 +287,12 @@ export function AppSidebar({ user }: { user: User | undefined }) {
           {navigationItems.map((item) => {
             const Icon = item.icon;
             const isActive = activePanel === item.id;
+            const isExternal = 'external' in item && item.external;
             
             return (
               <button
                 key={item.id}
-                onClick={() => handleNavClick(item.id, item.path)}
+                onClick={() => handleNavClick(item.id, item.path, isExternal)}
                 className={`
                   flex flex-col items-center gap-1 py-3 px-2 rounded-lg
                   transition-all duration-200
@@ -338,6 +389,10 @@ export function AppSidebar({ user }: { user: User | undefined }) {
                 {activePanel === 'home' && (
                   <SidebarHistory user={user} searchQuery={searchQuery} />
                 )}
+
+                {activePanel === 'agents' && (
+                  <SidebarSpecialists />
+                )}
                 
                 {activePanel === 'discover' && (
                   <div className="space-y-3">
@@ -380,6 +435,7 @@ export function AppSidebar({ user }: { user: User | undefined }) {
                     ))}
                   </div>
                 )}
+
               </div>
             </div>
           </motion.div>
