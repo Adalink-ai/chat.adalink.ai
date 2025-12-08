@@ -57,12 +57,24 @@ export async function GET(request: NextRequest) {
 
     // Criar sessão NextAuth usando provider SSO
     try {
-      await signIn('sso', {
+      // Only pass accessToken if it exists and is not empty
+      // Passing empty string would be falsy and won't be stored in JWT
+      const signInOptions: {
+        email: string;
+        userId: string;
+        redirectTo: string;
+        accessToken?: string;
+      } = {
         email: user.email,
         userId: user.id,
-        accessToken: ssoData.accessToken || '',
         redirectTo: redirectTo,
-      });
+      };
+      
+      if (ssoData.accessToken) {
+        signInOptions.accessToken = ssoData.accessToken;
+      }
+      
+      await signIn('sso', signInOptions);
       
       // Se chegou aqui, signIn redirecionou automaticamente
       // Mas por segurança, vamos garantir o redirect

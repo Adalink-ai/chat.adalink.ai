@@ -111,7 +111,7 @@ export function MessageFilePreview({ fileParts, isUserMessage = false }: Message
             className="group relative bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg p-2.5 shadow-sm hover:shadow-md transition-all duration-200 max-w-[200px] min-w-[160px] flex flex-col"
           >
             <div className="flex items-start gap-2.5">
-              <div className="flex-shrink-0 text-xl">
+              <div className="shrink-0 text-xl">
                 {getFileIcon(mediaType)}
               </div>
               <div className="flex-1 min-w-0">

@@ -10,7 +10,9 @@ import { addJobAtom } from './atoms';
 export function useJobPolling() {
 
   const addJob = useSetAtom(addJobAtom);
-  const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  // #region agent log
+  const activePollingJobsRef = useRef<Map<string, NodeJS.Timeout>>(new Map());
+  // #endregion agent log
 
   const pollForResult = useCallback(
     async (jobId: string, fileName: string) => {
@@ -48,9 +50,10 @@ export function useJobPolling() {
             description: errorMessage,
           });
 
-          if (pollIntervalRef.current) {
-            clearInterval(pollIntervalRef.current);
-            pollIntervalRef.current = null;
+          const jobInterval = activePollingJobsRef.current.get(jobId);
+          if (jobInterval) {
+            clearInterval(jobInterval);
+            activePollingJobsRef.current.delete(jobId);
           }
           return;
         }
@@ -86,9 +89,10 @@ export function useJobPolling() {
               description: errorMessage,
             });
 
-            if (pollIntervalRef.current) {
-              clearInterval(pollIntervalRef.current);
-              pollIntervalRef.current = null;
+            const jobInterval = activePollingJobsRef.current.get(jobId);
+            if (jobInterval) {
+              clearInterval(jobInterval);
+              activePollingJobsRef.current.delete(jobId);
             }
             return;
           }
@@ -120,9 +124,11 @@ export function useJobPolling() {
               description: 'Arquivo processado com sucesso',
             });
 
-            if (pollIntervalRef.current) {
-              clearInterval(pollIntervalRef.current);
-              pollIntervalRef.current = null;
+            // #region agent log
+            const jobInterval = activePollingJobsRef.current.get(jobId);
+            if (jobInterval) {
+              clearInterval(jobInterval);
+              activePollingJobsRef.current.delete(jobId);
             }
 
             // Somehow store the result in a state
@@ -146,9 +152,10 @@ export function useJobPolling() {
               description: errorMessage,
             });
 
-            if (pollIntervalRef.current) {
-              clearInterval(pollIntervalRef.current);
-              pollIntervalRef.current = null;
+            const jobInterval = activePollingJobsRef.current.get(jobId);
+            if (jobInterval) {
+              clearInterval(jobInterval);
+              activePollingJobsRef.current.delete(jobId);
             }
             return;
           }
@@ -178,9 +185,10 @@ export function useJobPolling() {
             description: errorMessage,
           });
 
-          if (pollIntervalRef.current) {
-            clearInterval(pollIntervalRef.current);
-            pollIntervalRef.current = null;
+          const jobInterval = activePollingJobsRef.current.get(jobId);
+          if (jobInterval) {
+            clearInterval(jobInterval);
+            activePollingJobsRef.current.delete(jobId);
           }
           return;
         }
@@ -189,8 +197,8 @@ export function useJobPolling() {
       // First poll immediately
       console.log('[POLLING] 🚀 Starting immediate poll...');
       poll();
-      // Then poll at intervals
-      pollIntervalRef.current = setInterval(poll, config.pollInterval);
+      const newInterval = setInterval(poll, config.pollInterval);
+      activePollingJobsRef.current.set(jobId, newInterval);
       console.log('[POLLING] ⏰ Polling interval set:', {
         interval: `${config.pollInterval}ms`,
       });
@@ -199,11 +207,10 @@ export function useJobPolling() {
   );
 
   const stopPolling = useCallback(() => {
-    if (pollIntervalRef.current) {
-      console.log('[POLLING] 🛑 Stopping polling interval');
-      clearInterval(pollIntervalRef.current);
-      pollIntervalRef.current = null;
-    }
+    activePollingJobsRef.current.forEach((interval) => {
+      clearInterval(interval);
+    });
+    activePollingJobsRef.current.clear();
   }, []);
 
   return {
