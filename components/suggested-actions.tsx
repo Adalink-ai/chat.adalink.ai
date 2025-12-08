@@ -6,7 +6,6 @@ import { memo } from 'react';
 import type { UseChatHelpers } from '@ai-sdk/react';
 import type { ChatMessage } from '@/lib/types';
 import { Sparkles, Plane, Lightbulb, TrendingUp } from 'lucide-react';
-import { generateUUID } from '@/lib/utils';
 
 interface SuggestedActionsProps {
   chatId: string;
@@ -51,10 +50,10 @@ function PureSuggestedActions({
     >
       {suggestedActions.map((suggestedAction, index) => {
         const Icon = suggestedAction.icon;
-        const key = generateUUID();
+        const key = `suggested-action-${index}-${suggestedAction.action}`;
         return (
           <Button
-            key={`suggested-action-${key}`}
+            key={key}
             variant="ghost"
             onClick={async () => {
               window.history.replaceState({}, '', `/chat/${chatId}`);
