@@ -9,6 +9,8 @@ export { validateFileType, validateFileSize, sanitizeFileName, FileTypeError, Fi
 export { getJob, setJob, updateJob, deleteJob, getAllJobs } from './lib/job-store';
 export { verifyWebhookSignature, isAllowedIP, getClientIP } from './lib/webhook-auth';
 export { AuthenticationError, ValidationError, ERROR_MESSAGES } from './lib/webhook-errors';
+export { processFilePartsForProvider } from './lib/process-file-parts';
+export { hasFileParts, createProviderSpecificModel } from './lib/create-provider-specific-model';
 export type { FileUploadResult, UploadProgress, PresignedUploadResponse } from './model/types';
 export type { Job, JobStatus } from './model/types';
 

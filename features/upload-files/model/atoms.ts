@@ -64,10 +64,13 @@ export const uploadFileJobResultAsFileUIPartsAtom = atom<FileUIPart[]>((get) => 
         type: 'file' as const,
         mediaType: job.fileType || 'application/octet-stream',
         filename: job.fileName,
-        url: fileUrl,
+        url: fileUrl, // Original URL (CloudFront) as default
         providerMetadata: {
-         provider: job.result?.provider,
-         fileId: job.result?.fileId,
+          provider: job.result?.provider,
+          fileId: job.result?.fileId,
+          originalFileUrl: fileUrl, // Store original URL for fallback
+          // Spread complete job result to preserve all metadata
+          ...(job.result || {}),
         },
       };
     });

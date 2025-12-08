@@ -4,8 +4,9 @@
  */
 const PROVIDER_API_KEY_MAP: Record<string, string> = {
   zai: 'ZAI_API_KEY',
-  xai: 'XI_API_KEY',
+  xai: 'XAI_API_KEY',
   openai: 'OPENAI_API_KEY',
+  google: 'GOOGLE_GENERATIVE_AI_API_KEY',
 } as const;
 
 /**

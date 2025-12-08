@@ -14,10 +14,15 @@ const filePartSchema = z.object({
   // Aceita qualquer mediaType (não apenas imagens)
   mediaType: z.string().min(1),
   // providerMetadata opcional (metadados do provedor)
-  providerMetadata: z.object({
-    provider: z.string().optional(),
-    fileId: z.string().optional(),
-  }).optional(),
+  // Permite campos extras do job result para preservar metadata completo
+  providerMetadata: z
+    .object({
+      provider: z.string().optional(),
+      fileId: z.string().optional(),
+      originalFileUrl: z.string().optional(),
+    })
+    .passthrough() // Permite campos extras do job result
+    .optional(),
 }).refine(
   (data) => data.filename || data.name,
   {

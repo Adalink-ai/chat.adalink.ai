@@ -38,6 +38,12 @@ import type { ChatModel } from '@/lib/ai/models';
 import type { VisibilityType } from '@/components/visibility-selector';
 import { gateway } from '@ai-sdk/gateway';
 import { myProvider } from '@/lib/ai/providers';
+import { processFilePartsForProvider } from '@/features/upload-files/lib/process-file-parts';
+import { extractModelInfo } from '@/features/upload-files/lib/model-info-server';
+import {
+  hasFileParts,
+  createProviderSpecificModel,
+} from '@/features/upload-files/lib/create-provider-specific-model';
 
 export const maxDuration = 60;
 
@@ -257,6 +263,11 @@ export async function POST(request: Request) {
           abortController.abort();
         }, 30000);
 
+        // Check if messages contain file parts
+        const hasFiles = hasFileParts(uiMessages);
+
+        console.log('[DEBUG] Has files:', hasFiles);
+
         // Determine which model to use
         const useInternalModel = [
           'chat-model',
@@ -265,20 +276,61 @@ export async function POST(request: Request) {
           'artifact-model',
         ].includes(selectedChatModel);
 
-        const modelToUse = useInternalModel
-          ? myProvider.languageModel(selectedChatModel)
-          : gateway(selectedChatModel);
+        // If files are present, try to use provider-specific model
+        // Otherwise, use gateway (or internal model)
+        let modelToUse;
+        let apiKeyType: string;
+
+        if (hasFiles && !useInternalModel) {
+          // Try to create provider-specific model when files are present
+          const providerModel = createProviderSpecificModel(
+            selectedChatModel,
+            true,
+          );
+
+          if (providerModel) {
+            modelToUse = providerModel;
+            apiKeyType = 'provider-specific';
+          } else {
+            // Fall back to gateway if provider-specific not available
+            modelToUse = gateway(selectedChatModel);
+            apiKeyType = 'gateway';
+          }
+        } else if (useInternalModel) {
+          modelToUse = myProvider.languageModel(selectedChatModel);
+          apiKeyType = hasFiles ? 'internal-provider' : 'internal-provider';
+        } else {
+          // No files, use gateway
+          modelToUse = gateway(selectedChatModel);
+          apiKeyType = 'gateway';
+        }
+
+        // Extract provider info for logging
+        const modelInfo = extractModelInfo(selectedChatModel);
 
         console.log('[MODEL] Using model:', {
           selectedChatModel,
           useInternalModel,
-          actualModel: useInternalModel ? `internal:${selectedChatModel}` : `gateway:${selectedChatModel}`,
+          hasFiles,
+          actualModel: useInternalModel
+            ? `internal:${selectedChatModel}`
+            : apiKeyType === 'provider-specific'
+              ? `provider-specific:${selectedChatModel}`
+              : `gateway:${selectedChatModel}`,
+          provider: modelInfo.provider,
+          apiKeyType, // 'provider-specific', 'gateway', or 'internal-provider'
         });
+
+        // Process file parts to use fileId when provider matches current model
+        const processedMessages = processFilePartsForProvider(
+          uiMessages,
+          selectedChatModel,
+        );
 
         const result = streamText({
           model: modelToUse,
           system: systemPrompt({ selectedChatModel, requestHints }),
-          messages: convertToModelMessages(uiMessages),
+          messages: convertToModelMessages(processedMessages),
           stopWhen: stepCountIs(5),
           abortSignal: abortController.signal,
           experimental_activeTools:
@@ -290,7 +342,7 @@ export async function POST(request: Request) {
                   'updateDocument',
                   'requestSuggestions',
                 ],
-          experimental_transform: smoothStream({ chunking: 'word' }),
+          experimental_transform: smoothStream({ chunking: 'word' , delayInMs: 100}),
           tools: {
             getWeather,
             createDocument: createDocument({ session, dataStream }),

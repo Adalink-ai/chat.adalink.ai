@@ -4,6 +4,7 @@ import { useState, useCallback } from 'react';
 import { Plus } from 'lucide-react';
 import { Button } from './ui/button';
 import { UploadModal } from '@/features/upload-files';
+import { extractModelInfo } from '@/features/upload-files/lib/model-info';
 
 interface UploadButtonProps {
   disabled?: boolean;
@@ -11,6 +12,13 @@ interface UploadButtonProps {
 }
 
 export function UploadButton({  disabled = false, selectedChatModel }: UploadButtonProps) {
+  // Ocultar botão para providers que não suportam upload de arquivos (XAI e ZAI)
+  if (selectedChatModel) {
+    const { provider } = extractModelInfo(selectedChatModel);
+    if (provider === 'xai' || provider === 'zai') {
+      return null;
+    }
+  }
 
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
 
