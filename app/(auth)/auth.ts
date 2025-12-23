@@ -120,7 +120,7 @@ export const {
         if (user.accessToken) {
           token.accessToken = user.accessToken;
           console.log('[Auth] AccessToken armazenado no JWT ✓');
-          console.log('[Auth] AccessToken (primeiros 20 chars):', user.accessToken.substring(0, 20) + '...');
+          console.log('[Auth] AccessToken (primeiros 20 chars):', `${user.accessToken.substring(0, 20)}...`);
         } else {
           console.warn('[Auth] ⚠️ User não tem accessToken');
           console.log('[Auth] User object:', { id: user.id, email: (user as any).email, type: user.type });
@@ -137,7 +137,7 @@ export const {
       if (token.accessToken) {
         session.accessToken = token.accessToken;
         console.log('[Auth] AccessToken incluído na sessão ✓');
-        console.log('[Auth] AccessToken na sessão (primeiros 20 chars):', token.accessToken.substring(0, 20) + '...');
+        console.log('[Auth] AccessToken na sessão (primeiros 20 chars):', `${token.accessToken.substring(0, 20)}...`);
       } else {
         console.warn('[Auth] ⚠️ Token JWT não tem accessToken');
         console.log('[Auth] Token object keys:', Object.keys(token));

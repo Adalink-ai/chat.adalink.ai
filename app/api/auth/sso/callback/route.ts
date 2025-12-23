@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { type NextRequest, NextResponse } from 'next/server';
 import { signIn } from '@/app/(auth)/auth';
 import { decodeSSOToken } from '@/lib/sso/jwt';
 import { syncSSOUser } from '@/lib/sso/sync-user';
@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
     console.log('[SSO] Token válido para:', ssoData.email);
     console.log('[SSO] AccessToken presente no JWT:', !!ssoData.accessToken);
     if (ssoData.accessToken) {
-      console.log('[SSO] AccessToken (primeiros 20 chars):', ssoData.accessToken.substring(0, 20) + '...');
+      console.log('[SSO] AccessToken (primeiros 20 chars):', `${ssoData.accessToken.substring(0, 20)}...`);
     } else {
       console.warn('[SSO] ⚠️ AccessToken NÃO foi enviado pelo front-adalink!');
     }
@@ -57,12 +57,24 @@ export async function GET(request: NextRequest) {
 
     // Criar sessão NextAuth usando provider SSO
     try {
-      await signIn('sso', {
+      // Only pass accessToken if it exists and is not empty
+      // Passing empty string would be falsy and won't be stored in JWT
+      const signInOptions: {
+        email: string;
+        userId: string;
+        redirectTo: string;
+        accessToken?: string;
+      } = {
         email: user.email,
         userId: user.id,
-        accessToken: ssoData.accessToken || '',
         redirectTo: redirectTo,
-      });
+      };
+      
+      if (ssoData.accessToken) {
+        signInOptions.accessToken = ssoData.accessToken;
+      }
+      
+      await signIn('sso', signInOptions);
       
       // Se chegou aqui, signIn redirecionou automaticamente
       // Mas por segurança, vamos garantir o redirect

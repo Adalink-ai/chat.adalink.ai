@@ -7,10 +7,29 @@ const textPartSchema = z.object({
 
 const filePartSchema = z.object({
   type: z.enum(['file']),
-  mediaType: z.enum(['image/jpeg', 'image/png']),
-  name: z.string().min(1).max(100),
   url: z.string().url(),
-});
+  // Aceita filename (AI SDK) ou name (compatibilidade)
+  filename: z.string().min(1).max(100).optional(),
+  name: z.string().min(1).max(100).optional(),
+  // Aceita qualquer mediaType (não apenas imagens)
+  mediaType: z.string().min(1),
+  // providerMetadata opcional (metadados do provedor)
+  // Permite campos extras do job result para preservar metadata completo
+  providerMetadata: z
+    .object({
+      provider: z.string().optional(),
+      fileId: z.string().optional(),
+      originalFileUrl: z.string().optional(),
+    })
+    .passthrough() // Permite campos extras do job result
+    .optional(),
+}).refine(
+  (data) => data.filename || data.name,
+  {
+    message: 'Either filename or name must be provided',
+    path: ['filename'],
+  }
+);
 
 const partSchema = z.union([textPartSchema, filePartSchema]);
 

@@ -1,68 +1,202 @@
-import { put } from '@vercel/blob';
 import { NextResponse } from 'next/server';
-import { z } from 'zod';
-
+import { randomUUID } from 'node:crypto';
 import { auth } from '@/app/(auth)/auth';
+import { isDevelopmentEnvironment } from '@/lib/constants';
+import {
+  getPresignedUrlToUpload,
+  getPublicUrl,
+  validateFileType,
+  validateFileSize,
+  sanitizeFileName,
+  FileTypeError,
+  FileSizeError,
+} from '@/features/upload-files/server';
+import { setJob } from '@/features/upload-files/lib/job-store';
+import type { Job } from '@/features/upload-files/model/types';
+import { extractModelInfo } from '@/features/upload-files/lib/model-info-server';
+import { getApiKeyForProvider } from '@/features/upload-files/lib/api-keys';
 
-// Use Blob instead of File since File is not available in Node.js environment
-const FileSchema = z.object({
-  file: z
-    .instanceof(Blob)
-    .refine((file) => file.size <= 5 * 1024 * 1024, {
-      message: 'File size should be less than 5MB',
-    })
-    // Update the file type based on the kind of files you want to accept
-    .refine((file) => ['image/jpeg', 'image/png'].includes(file.type), {
-      message: 'File type should be JPEG or PNG',
-    }),
-});
+interface UploadRequest {
+  fileName: string;
+  fileSize: number;
+  fileType: string;
+  selectedChatModel?: string; // Modelo selecionado para obter o provider e API key
+}
 
 export async function POST(request: Request) {
+  console.log('[UPLOAD API] 📥 Request received');
+  const startTime = Date.now();
+  
   const session = await auth();
 
-  if (!session) {
+  if (!session?.user?.id) {
+    console.error('[UPLOAD API] ❌ Unauthorized - no user session');
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
+  console.log('[UPLOAD API] ✅ User authenticated:', { userId: session.user.id });
+
   if (request.body === null) {
-    return new Response('Request body is empty', { status: 400 });
+    console.error('[UPLOAD API] ❌ Request body is empty');
+    return NextResponse.json({ error: 'Request body is empty' }, { status: 400 });
   }
 
   try {
-    const formData = await request.formData();
-    const file = formData.get('file') as Blob;
+    const body: UploadRequest = await request.json();
+    console.log('[UPLOAD API] 📋 Request body:', {
+      fileName: body.fileName,
+      fileSize: body.fileSize,
+      fileType: body.fileType,
+      selectedChatModel: body.selectedChatModel,
+    });
 
-    if (!file) {
-      return NextResponse.json({ error: 'No file uploaded' }, { status: 400 });
+    if (!body.fileName || !body.fileSize || !body.fileType) {
+      console.error('[UPLOAD API] ❌ Missing required fields');
+      return NextResponse.json(
+        { error: 'Missing required fields: fileName, fileSize, fileType' },
+        { status: 400 }
+      );
     }
 
-    const validatedFile = FileSchema.safeParse({ file });
+    // Validate file size
+    console.log('[UPLOAD API] 🔍 Validating file size...');
+    validateFileSize(body.fileSize);
+    console.log('[UPLOAD API] ✅ File size valid:', body.fileSize);
 
-    if (!validatedFile.success) {
-      const errorMessage = validatedFile.error.errors
-        .map((error) => error.message)
-        .join(', ');
+    // Validate file type
+    console.log('[UPLOAD API] 🔍 Validating file type...');
+    validateFileType(body.fileName, body.fileType);
+    console.log('[UPLOAD API] ✅ File type valid:', body.fileType);
 
-      return NextResponse.json({ error: errorMessage }, { status: 400 });
+    // Sanitize filename
+    const sanitizedFileName = sanitizeFileName(body.fileName);
+    console.log('[UPLOAD API] 🧹 Filename sanitized:', {
+      original: body.fileName,
+      sanitized: sanitizedFileName,
+    });
+
+    // Generate job ID for tracking
+    const jobId = randomUUID();
+    console.log('[UPLOAD API] 🆔 Job ID generated:', jobId);
+
+    // Generate S3 key using format: uploads/temp-uploads/${jobId}/${sanitizedFileName}
+    const key = `uploads/temp-uploads/${jobId}/${sanitizedFileName}`;
+    console.log('[UPLOAD API] 🔑 S3 key generated:', key);
+
+    // Generate presigned URL for direct upload (expires in 1 hour)
+    console.log('[UPLOAD API] 🔗 Generating presigned URL...');
+    const uploadUrl = await getPresignedUrlToUpload(key, body.fileType, 3600);
+    console.log('[UPLOAD API] ✅ Presigned URL generated (expires in 1 hour)');
+
+    // Generate public URL for the file
+    const publicUrl = getPublicUrl(key);
+    console.log('[UPLOAD API] 🌐 Public URL:', publicUrl);
+
+    // Get worker URL from environment or use default
+    const workerUrl =
+      process.env.CLOUDFLARE_WORKER_URL ||
+      'https://adalink-upload-worker.adalink.workers.dev';
+    if (isDevelopmentEnvironment) {
+      console.log('[UPLOAD API] 👷 Worker URL:', `${workerUrl}/upload`);
     }
 
-    // Get filename from formData since Blob doesn't have name property
-    const filename = (formData.get('file') as File).name;
-    const fileBuffer = await file.arrayBuffer();
-
-    try {
-      const data = await put(`${filename}`, fileBuffer, {
-        access: 'public',
-      });
-
-      return NextResponse.json(data);
-    } catch (error) {
-      return NextResponse.json({ error: 'Upload failed' }, { status: 500 });
+    // Extract model info if provided
+    const modelInfo = body.selectedChatModel ? extractModelInfo(body.selectedChatModel) : null;
+    
+    // Get API key for provider if model is provided
+    let apiKey: string | undefined;
+    if (modelInfo?.provider) {
+      apiKey = getApiKeyForProvider(modelInfo.provider);
+      if (apiKey) {
+        console.log('[UPLOAD API] 🔑 API key obtained for provider:', {
+          provider: modelInfo.provider,
+          hasApiKey: !!apiKey,
+          apiKeyLength: apiKey.length,
+        });
+      } else {
+        console.warn('[UPLOAD API] ⚠️ API key not found for provider:', modelInfo.provider);
+      }
     }
+    
+    // Create initial job in store
+    const initialJob: Job = {
+      id: jobId,
+      status: 'pending',
+      fileName: sanitizedFileName,
+      fileSize: body.fileSize,
+      fileType: body.fileType,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      metadata: {
+        originalFileName: body.fileName,
+        s3Key: key,
+        userId: session.user.id,
+        ...(modelInfo && {
+          selectedChatModel: body.selectedChatModel,
+          modelProvider: modelInfo.provider,
+          modelName: modelInfo.model,
+          isInternalModel: modelInfo.isInternal,
+        }),
+      },
+    };
+
+    setJob(initialJob);
+    console.log('[UPLOAD API] 📝 Job created in store:', {
+      jobId,
+      status: initialJob.status,
+    });
+
+    const response = {
+      uploadUrl, // Presigned URL for direct S3 upload
+      workerUrl: `${workerUrl}/upload`, // Worker URL for processing notification
+      jobId, // Job identifier for tracking
+      key, // S3 key where file will be stored
+      publicUrl, // Public URL after upload
+      expiresIn: 3600, // URL expiration time in seconds
+      ...(apiKey && { apiKey }), // API key for the provider (only if available)
+    };
+
+    const duration = Date.now() - startTime;
+    console.log('[UPLOAD API] ✅ Upload initialized successfully:', {
+      jobId,
+      key,
+      duration: `${duration}ms`,
+    });
+
+    return NextResponse.json(response);
   } catch (error) {
+    const duration = Date.now() - startTime;
+    console.error('[UPLOAD API] ❌ Upload initialization error:', {
+      error: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      duration: `${duration}ms`,
+    });
+
+    if (error instanceof FileTypeError) {
+      console.error('[UPLOAD API] ❌ FileTypeError:', {
+        allowedTypes: error.allowedTypes,
+        receivedType: error.receivedType,
+      });
+      return NextResponse.json(
+        { error: error.message },
+        { status: 400 }
+      );
+    }
+
+    if (error instanceof FileSizeError) {
+      console.error('[UPLOAD API] ❌ FileSizeError:', {
+        maxSize: error.maxSize,
+        receivedSize: error.receivedSize,
+      });
+      return NextResponse.json(
+        { error: error.message },
+        { status: 400 }
+      );
+    }
+
     return NextResponse.json(
-      { error: 'Failed to process request' },
-      { status: 500 },
+      { error: error instanceof Error ? error.message : 'Failed to initialize upload' },
+      { status: 500 }
     );
   }
 }

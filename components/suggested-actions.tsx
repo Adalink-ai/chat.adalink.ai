@@ -50,9 +50,10 @@ function PureSuggestedActions({
     >
       {suggestedActions.map((suggestedAction, index) => {
         const Icon = suggestedAction.icon;
+        const key = `suggested-action-${index}-${suggestedAction.action}`;
         return (
           <Button
-            key={`suggested-action-${index}`}
+            key={key}
             variant="ghost"
             onClick={async () => {
               window.history.replaceState({}, '', `/chat/${chatId}`);

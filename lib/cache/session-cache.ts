@@ -15,7 +15,7 @@ class SessionCache {
   /**
    * Set cache item with TTL
    */
-  set<T>(key: string, data: T, ttlMs: number = 300000): void { // Default 5 minutes
+  set<T>(key: string, data: T, ttlMs = 300000): void { // Default 5 minutes
     this.cache.set(key, {
       data,
       timestamp: Date.now(),

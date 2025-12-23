@@ -5,6 +5,7 @@ import { Markdown } from './markdown';
 import { sanitizeText, cn } from '@/lib/utils';
 import type { ChatMessage } from '@/lib/types';
 import type { Session } from 'next-auth';
+import { MessageFilePreview } from './message-file-preview';
 
 interface MessageBubbleProps {
   message: ChatMessage;
@@ -44,16 +45,32 @@ export function MessageBubble({ message, session }: MessageBubbleProps) {
 
       {/* Message Content */}
       <div className="flex flex-col gap-2 max-w-xs md:max-w-md lg:max-w-lg">
-        <div
-          className={cn(
-            'px-4 py-3 rounded-2xl',
-            isUser
-              ? 'bg-purple-custom-500 text-white rounded-br-sm'
-              : 'bg-card text-card-foreground rounded-bl-sm shadow-sm border border-border',
-          )}
-        >
-          <Markdown>{sanitizeText(textContent)}</Markdown>
-        </div>
+        {message.parts?.map((part, index) => {
+          const key = `message-${message.id}-part-${index}`;
+          if (part.type === 'text') {
+            return (
+              <div
+                key={key}
+                className={cn(
+                  'px-4 py-3 rounded-2xl',
+                  isUser
+                    ? 'bg-purple-custom-500 text-white rounded-br-sm'
+                    : 'bg-card text-card-foreground rounded-bl-sm shadow-sm border border-border',
+                )}
+              >
+                <Markdown>{sanitizeText(part.text)}</Markdown>
+              </div>
+            );
+          }
+          if (part.type === 'file') {
+            return (
+              <div key={key}>
+                <MessageFilePreview fileParts={[part]} isUserMessage={isUser} />
+              </div>
+            );
+          }
+          return null;
+        })}
 
         {/* Timestamp */}
         <div

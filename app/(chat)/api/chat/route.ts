@@ -5,6 +5,7 @@ import {
   smoothStream,
   stepCountIs,
   streamText,
+  type LanguageModel,
 } from 'ai';
 import { auth, type UserType } from '@/app/(auth)/auth';
 import { type RequestHints, systemPrompt } from '@/lib/ai/prompts';
@@ -38,6 +39,12 @@ import type { ChatModel } from '@/lib/ai/models';
 import type { VisibilityType } from '@/components/visibility-selector';
 import { gateway } from '@ai-sdk/gateway';
 import { myProvider } from '@/lib/ai/providers';
+import { processFilePartsForProvider } from '@/features/upload-files/lib/process-file-parts';
+import { extractModelInfo } from '@/features/upload-files/lib/model-info-server';
+import {
+  hasFileParts,
+  createProviderSpecificModel,
+} from '@/features/upload-files/lib/create-provider-specific-model';
 
 export const maxDuration = 60;
 
@@ -199,21 +206,41 @@ export async function POST(request: Request) {
       country,
     };
 
+    // Debug: Verificar file parts antes de salvar
+    const fileParts = message.parts.filter((part) => part.type === 'file');
+    console.log('[DEBUG] Message parts before save:', {
+      totalParts: message.parts.length,
+      filePartsCount: fileParts.length,
+      fileParts: fileParts.map((part) => ({
+        type: part.type,
+        url: part.url,
+        filename: part.filename || (part as any).name,
+        mediaType: part.mediaType,
+      })),
+      allParts: message.parts.map((part) => ({
+        type: part.type,
+        ...(part.type === 'text' ? { text: (part as any).text?.substring(0, 50) } : {}),
+        ...(part.type === 'file' ? { url: part.url, filename: part.filename || (part as any).name } : {}),
+      })),
+    });
+
     // Save user message and generate stream ID in parallel
     const streamId = generateUUID();
     const finalSetupStartTime = Date.now();
+    
+    const messageToSave = {
+      chatId: id,
+      id: message.id,
+      role: 'user',
+      parts: message.parts,
+      attachments: [],
+      createdAt: new Date(),
+    };
+
+
     await Promise.all([
       saveMessages({
-        messages: [
-          {
-            chatId: id,
-            id: message.id,
-            role: 'user',
-            parts: message.parts,
-            attachments: [],
-            createdAt: new Date(),
-          },
-        ],
+        messages: [messageToSave],
       }),
       createStreamId({ streamId, chatId: id })
     ]);
@@ -237,6 +264,11 @@ export async function POST(request: Request) {
           abortController.abort();
         }, 30000);
 
+        // Check if messages contain file parts
+        const hasFiles = hasFileParts(uiMessages);
+
+        console.log('[DEBUG] Has files:', hasFiles);
+
         // Determine which model to use
         const useInternalModel = [
           'chat-model',
@@ -245,20 +277,61 @@ export async function POST(request: Request) {
           'artifact-model',
         ].includes(selectedChatModel);
 
-        const modelToUse = useInternalModel
-          ? myProvider.languageModel(selectedChatModel)
-          : gateway(selectedChatModel);
+        // If files are present, try to use provider-specific model
+        // Otherwise, use gateway (or internal model)
+        let modelToUse: LanguageModel;
+        let apiKeyType: string;
+
+        if (hasFiles && !useInternalModel) {
+          // Try to create provider-specific model when files are present
+          const providerModel = createProviderSpecificModel(
+            selectedChatModel,
+            true,
+          );
+
+          if (providerModel) {
+            modelToUse = providerModel;
+            apiKeyType = 'provider-specific';
+          } else {
+            // Fall back to gateway if provider-specific not available
+            modelToUse = gateway(selectedChatModel);
+            apiKeyType = 'gateway';
+          }
+        } else if (useInternalModel) {
+          modelToUse = myProvider.languageModel(selectedChatModel);
+          apiKeyType = hasFiles ? 'internal-provider' : 'internal-provider';
+        } else {
+          // No files, use gateway
+          modelToUse = gateway(selectedChatModel);
+          apiKeyType = 'gateway';
+        }
+
+        // Extract provider info for logging
+        const modelInfo = extractModelInfo(selectedChatModel);
 
         console.log('[MODEL] Using model:', {
           selectedChatModel,
           useInternalModel,
-          actualModel: useInternalModel ? `internal:${selectedChatModel}` : `gateway:${selectedChatModel}`,
+          hasFiles,
+          actualModel: useInternalModel
+            ? `internal:${selectedChatModel}`
+            : apiKeyType === 'provider-specific'
+              ? `provider-specific:${selectedChatModel}`
+              : `gateway:${selectedChatModel}`,
+          provider: modelInfo.provider,
+          apiKeyType, // 'provider-specific', 'gateway', or 'internal-provider'
         });
+
+        // Process file parts to use fileId when provider matches current model
+        const processedMessages = processFilePartsForProvider(
+          uiMessages,
+          selectedChatModel,
+        );
 
         const result = streamText({
           model: modelToUse,
           system: systemPrompt({ selectedChatModel, requestHints }),
-          messages: convertToModelMessages(uiMessages),
+          messages: convertToModelMessages(processedMessages),
           stopWhen: stepCountIs(5),
           abortSignal: abortController.signal,
           experimental_activeTools:
@@ -270,7 +343,7 @@ export async function POST(request: Request) {
                   'updateDocument',
                   'requestSuggestions',
                 ],
-          experimental_transform: smoothStream({ chunking: 'word' }),
+          experimental_transform: smoothStream({ chunking: 'word' , delayInMs: 100}),
           tools: {
             getWeather,
             createDocument: createDocument({ session, dataStream }),
@@ -314,16 +387,25 @@ export async function POST(request: Request) {
         // Save only AI response messages (user message already saved)
         const saveStartTime = Date.now();
 
-        await saveMessages({
-          messages: messages.map((message) => ({
-            id: message.id,
-            role: message.role,
-            parts: message.parts,
-            createdAt: new Date(),
-            attachments: [],
-            chatId: id,
-          })),
-        });
+        const messagesToSave = messages.map((message) => ({
+          id: message.id,
+          role: message.role,
+          parts: message.parts,
+          createdAt: new Date(),
+          attachments: [],
+          chatId: id,
+        }));
+
+
+        try {
+          await saveMessages({
+            messages: messagesToSave,
+          });
+        } catch (error) {
+          console.error('[ERROR] Failed to save messages in onFinish:', error);
+          // Re-throw to let the error propagate
+          throw error;
+        }
 
         console.log('[PERF] AI response save took:', Date.now() - saveStartTime, 'ms');
         console.log('[PERF] Request completed in total:', Date.now() - startTime, 'ms');
