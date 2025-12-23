@@ -23,14 +23,7 @@ export function UploadButton({
   onOpenUpload,
   onOpenConnectors,
 }: UploadButtonProps) {
-  // Ocultar botão para providers que não suportam upload de arquivos (XAI e ZAI)
-  if (selectedChatModel) {
-    const { provider } = extractModelInfo(selectedChatModel);
-    if (provider === 'xai' || provider === 'zai') {
-      return null;
-    }
-  }
-
+  
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -45,16 +38,27 @@ export function UploadButton({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="min-w-[180px]">
-        <DropdownMenuItem
-          onClick={(e) => {
-            e.preventDefault();
-            onOpenUpload?.();
-          }}
-          className="gap-2 cursor-pointer"
-        >
-          <Paperclip size={16} />
-          Enviar Arquivos
-        </DropdownMenuItem>
+        {(() => {
+          // Ocultar botão para providers que não suportam upload de arquivos (XAI e ZAI)
+          if (selectedChatModel) {
+            const { provider } = extractModelInfo(selectedChatModel);
+            if (provider === 'xai' || provider === 'zai') {
+              return null;
+            }
+          }
+          return (
+            <DropdownMenuItem
+              onClick={(e) => {
+                e.preventDefault();
+                onOpenUpload?.();
+              }}
+              className="gap-2 cursor-pointer"
+            >
+              <Paperclip size={16} />
+              Enviar Arquivos
+            </DropdownMenuItem>
+          );
+        })()}
         <DropdownMenuItem
           onClick={(e) => {
             e.preventDefault();

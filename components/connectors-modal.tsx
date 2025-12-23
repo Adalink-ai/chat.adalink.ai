@@ -23,7 +23,6 @@ export function ConnectorsModal({ open, onOpenChange }: ConnectorsModalProps) {
 
   const handleConnect = async (slug: string) => {
     await connectService(slug);
-    // Keep modal open so user can see the updated status
   };
 
   const handleDisconnect = async (connectionId: string) => {
