@@ -37,6 +37,7 @@ CONNECTORS_ENCRYPTION_KEY=your_generated_key_here
 For each provider you want to enable, create an OAuth application:
 
 #### Google
+
 1. Go to [Google Cloud Console](https://console.cloud.google.com/apis/credentials)
 2. Create a new project or select existing
 3. Create OAuth 2.0 Client ID (Web application)
@@ -48,6 +49,7 @@ For each provider you want to enable, create an OAuth application:
    ```
 
 #### Microsoft
+
 1. Go to [Azure Portal](https://portal.azure.com/#view/Microsoft_AAD_RegisteredApps)
 2. Register a new application
 3. Add Web platform with redirect URI: `https://your-domain.com/api/connectors/callback`
@@ -59,6 +61,7 @@ For each provider you want to enable, create an OAuth application:
    ```
 
 #### GitHub
+
 1. Go to [GitHub Developer Settings](https://github.com/settings/developers)
 2. Create New OAuth App
 3. Homepage URL: `https://your-domain.com`
@@ -72,6 +75,7 @@ For each provider you want to enable, create an OAuth application:
 #### Other Providers
 
 Follow similar steps for:
+
 - **Dropbox**: https://www.dropbox.com/developers/apps
 - **Box**: https://app.box.com/developers/console
 - **Slack**: https://api.slack.com/apps
@@ -102,6 +106,7 @@ This is used for generating OAuth redirect URIs.
 ### 6. Verify Setup
 
 1. Start your development server:
+
    ```bash
    npm run dev
    ```
@@ -115,23 +120,28 @@ This is used for generating OAuth redirect URIs.
 ## Troubleshooting
 
 ### "Invalid redirect URI" error
+
 - Ensure the redirect URI in your OAuth app matches exactly: `{YOUR_APP_URL}/api/connectors/callback`
 - Check that `NEXTAUTH_URL` is set correctly in `.env`
 
 ### "CONNECTORS_ENCRYPTION_KEY environment variable is not set"
+
 - Run `openssl rand -base64 32` and add the output to `.env`
 - Restart your application after adding the key
 
 ### "Unknown OAuth provider" error
+
 - Verify the provider is configured in `lib/connectors/oauth-providers.ts`
 - Check that the connector's `provider` field in the database matches the provider name
 
 ### Tokens not refreshing
+
 - Ensure your OAuth app has `offline_access` scope (for Microsoft)
 - For Google, verify `access_type=offline` and `prompt=consent` are set
 - Check that refresh tokens are being stored in the database
 
 ### Connection appears but authentication fails
+
 - Verify OAuth client credentials are correct
 - Check that scopes match what's configured in your OAuth app
 - Look at network requests in browser DevTools for error details
@@ -148,6 +158,7 @@ This is used for generating OAuth redirect URIs.
 ## Next Steps
 
 After setup:
+
 1. Test each connector with real OAuth flow
 2. Implement connector-specific data retrieval logic
 3. Add UI for browsing connected data
@@ -162,8 +173,8 @@ CONNECTORS_ENCRYPTION_KEY=<base64-encoded-32-byte-key>
 NEXTAUTH_URL=https://your-domain.com
 
 # Optional - Configure only providers you want to enable
-OAUTH_GOOGLE_CLIENT_ID=
-OAUTH_GOOGLE_CLIENT_SECRET=
+GOOGLE_OAUTH_CLIENT_ID=
+GOOGLE_OAUTH_CLIENT_SECRET=
 
 OAUTH_MICROSOFT_CLIENT_ID=
 OAUTH_MICROSOFT_CLIENT_SECRET=
@@ -193,6 +204,7 @@ OAUTH_HUBSPOT_CLIENT_SECRET=
 ## Support
 
 For issues or questions:
+
 - Check the implementation plan at `implementation_plan.md`
 - Review the walkthrough at `walkthrough.md`
 - Check logs in browser DevTools and server console
