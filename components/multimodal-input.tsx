@@ -16,6 +16,7 @@ import type { ChatMessage } from '@/lib/types';
 import { useTextareaAutoResize } from '@/hooks/use-textarea-auto-resize';
 import { useFileHandling } from '@/hooks/use-file-handling';
 import { useMessageSubmit } from '@/hooks/use-message-submit';
+import { ConnectorsModal } from './connectors-modal';
 
 function PureMultimodalInput({
   chatId,
@@ -40,7 +41,10 @@ function PureMultimodalInput({
 }) {
   const [isMobile, setIsMobile] = useState(false);
   const { width } = useWindowSize();
+  const [showConnectorsModal, setShowConnectorsModal] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
 
+  
   const {
     textareaRef,
     adjustHeight,
@@ -142,6 +146,12 @@ function PureMultimodalInput({
           />
         </div>
       </div>
+
+      {/* Connectors Modal */}
+      <ConnectorsModal
+        open={showConnectorsModal}
+        onOpenChange={setShowConnectorsModal}
+      />
     </div>
   );
 }
