@@ -33,4 +33,5 @@ export {
   Globe as GlobeIcon,
   Lock as LockIcon,
   Send as SendIcon,
+  Plug as IntegrationsIcon,
 } from 'lucide-react';
