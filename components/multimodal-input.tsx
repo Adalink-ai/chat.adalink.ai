@@ -3,7 +3,6 @@
 import { useEffect, useState, memo } from 'react';
 import type { UIMessage } from 'ai';
 import type { Dispatch, SetStateAction } from 'react';
-import { useWindowSize } from 'usehooks-ts';
 import { SuggestedActions } from './suggested-actions';
 import { UploadButton } from './upload-button';
 import { UploadedDocumentsPreview } from './uploaded-documents-preview';
@@ -17,6 +16,7 @@ import { useTextareaAutoResize } from '@/hooks/use-textarea-auto-resize';
 import { useFileHandling } from '@/hooks/use-file-handling';
 import { useMessageSubmit } from '@/hooks/use-message-submit';
 import { ConnectorsModal } from './connectors-modal';
+import { UploadModal } from '@/features/upload-files';
 
 function PureMultimodalInput({
   chatId,
@@ -40,9 +40,8 @@ function PureMultimodalInput({
   selectedChatModel?: string;
 }) {
   const [isMobile, setIsMobile] = useState(false);
-  const { width } = useWindowSize();
   const [showConnectorsModal, setShowConnectorsModal] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
 
   
   const {
@@ -124,6 +123,8 @@ function PureMultimodalInput({
           <UploadButton
             disabled={status !== 'ready'}
             selectedChatModel={selectedChatModel}
+            onOpenUpload={() => setIsUploadModalOpen(true)}
+            onOpenConnectors={() => setShowConnectorsModal(true)}
           />
           <ChatTextarea
             textareaRef={textareaRef}
@@ -146,6 +147,13 @@ function PureMultimodalInput({
           />
         </div>
       </div>
+
+      {/* Upload Modal */}
+      <UploadModal
+        open={isUploadModalOpen}
+        onClose={() => setIsUploadModalOpen(false)}
+        selectedChatModel={selectedChatModel}
+      />
 
       {/* Connectors Modal */}
       <ConnectorsModal
